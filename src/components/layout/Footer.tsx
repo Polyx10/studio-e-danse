@@ -162,7 +162,7 @@ export function Footer() {
               <Link href="/mentions-legales" className="hover:text-[#F9CA24] transition">
                 Mentions légales
               </Link>
-              <Link href="/confidentialite" className="hover:text-[#F9CA24] transition">
+              <Link href="/politique-confidentialite" className="hover:text-[#F9CA24] transition">
                 Politique de confidentialité
               </Link>
             </div>
