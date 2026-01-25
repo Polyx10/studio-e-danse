@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { envoyerEmailConfirmationInscription } from '@/lib/email';
-import { planningCours } from '@/lib/planning-data';
+import { planningCours } from '@studio-e-danse/planning-shared';
 
 export async function POST(request: NextRequest) {
   try {

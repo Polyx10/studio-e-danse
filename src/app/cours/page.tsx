@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight, Clock, Users, Calendar } from "lucide-react";
-import { planningCours, professeursColors, CoursPlanning } from "@/lib/planning-data";
+import { planningCours, professeursColors, CoursPlanning } from "@studio-e-danse/planning-shared";
 import { useRef, useEffect } from "react";
 
 // Metadata moved to layout or removed for client component

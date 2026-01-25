@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CoursPlanning } from "@/lib/planning-data";
+import { CoursPlanning } from "@studio-e-danse/planning-shared";
 import { ajouterListeAttente } from "@/hooks/useQuotas";
 import { CheckCircle2 } from "lucide-react";
 

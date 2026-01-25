@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight, Download, Info, Calculator } from "lucide-react";
-import { tarifGrille, tarifsSpeciaux, fraisFixes } from "@/lib/planning-data";
+import { tarifGrille, tarifsSpeciaux, fraisFixes } from "@studio-e-danse/planning-shared";
 
 export const metadata = {
   title: "Tarifs | Studio e - École de danse à Brest",

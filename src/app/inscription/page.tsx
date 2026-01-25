@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { CheckCircle2, Info, AlertCircle, Calculator, Users } from "lucide-react";
-import { planningCours, professeursColors, tarifsSpeciaux, fraisFixes, getTarifForDuree, calculateAge, CoursPlanning } from "@/lib/planning-data";
+import { planningCours, professeursColors, tarifsSpeciaux, fraisFixes, getTarifForDuree, calculateAge, CoursPlanning } from "@studio-e-danse/planning-shared";
 import { useQuotas, incrementerQuota } from "@/hooks/useQuotas";
 import { ListeAttenteModal } from "@/components/ListeAttenteModal";
 
