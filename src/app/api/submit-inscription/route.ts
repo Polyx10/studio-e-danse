@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/neon';
 import { envoyerEmailConfirmationInscription } from '@/lib/email';
-import { planningCours } from '@studio-e-danse/planning-shared';
+import { planningCours } from '@/lib/planning-data';
 import { inscriptionSchema } from '@/lib/validation';
 import { ZodError } from 'zod';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';

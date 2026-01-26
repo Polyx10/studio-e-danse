@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight, Clock, Euro, Users, CheckCircle2 } from "lucide-react";
-import { tarifGrille, tarifsSpeciaux, fraisFixes } from "@studio-e-danse/planning-shared";
+import { tarifGrille, tarifsSpeciaux, fraisFixes } from "@/lib/planning-data";
 
 export default function TarifsPage() {
   return (
