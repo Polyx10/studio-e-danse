@@ -9,8 +9,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Info, AlertCircle, Calculator } from "lucide-react";
+import { CheckCircle2, Info, AlertCircle, Calculator, Users } from "lucide-react";
 import { planningCours, professeursColors, tarifsSpeciaux, fraisFixes, getTarifForDuree, calculateAge, CoursPlanning } from "@/lib/planning-data";
+import { useQuotas, incrementerQuota } from "@/hooks/useQuotas";
+import { ListeAttenteModal } from "@/components/ListeAttenteModal";
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
   const steps = [
@@ -53,6 +55,11 @@ export default function InscriptionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [coursListeAttente, setCoursListeAttente] = useState<CoursPlanning | null>(null);
+  
+  // Charger les quotas pour tous les cours
+  const coursIds = planningCours.map(c => c.id);
+  const { quotas, loading: quotasLoading } = useQuotas(coursIds);
   
   const [formData, setFormData] = useState({
     adherentPrecedent: false,
@@ -170,7 +177,14 @@ export default function InscriptionPage() {
       
       console.log('Inscription réussie!', result);
       
-      // Quotas désactivés temporairement
+      // Incrémenter les quotas pour les cours sélectionnés
+      try {
+        await Promise.all(
+          selectedCourses.map(coursId => incrementerQuota(coursId, 'en_ligne'))
+        );
+      } catch (quotaError) {
+        console.error('Erreur incrémentation quotas:', quotaError);
+      }
       
       setIsSubmitted(true);
     } catch (error) {
@@ -360,10 +374,15 @@ export default function InscriptionPage() {
                                   const isSelected = selectedCourses.includes(c.id);
                                   const colorClass = professeursColors[c.professeur] || "bg-gray-100";
                                   const isSpecial = c.isDanseEtudes || c.isConcours;
+                                  const quota = quotas[c.id];
+                                  const isComplet = quota && !quota.disponible && !isSpecial;
+                                  const placesRestantes = quota?.places_restantes || 0;
                                   
                                   let className = "p-3 rounded-lg border-2 transition-all " + colorClass;
                                   if (isSpecial) {
                                     className = "p-3 rounded-lg border-2 opacity-50 cursor-not-allowed bg-gray-100";
+                                  } else if (isComplet) {
+                                    className = "p-3 rounded-lg border-2 bg-gray-100 border-gray-300";
                                   } else if (isSelected) {
                                     className = "p-3 rounded-lg border-2 cursor-pointer transition-all border-[#F9CA24] ring-2 ring-[#F9CA24] " + colorClass;
                                   } else {
@@ -373,8 +392,8 @@ export default function InscriptionPage() {
                                   return (
                                     <div key={c.id} className={className}>
                                       <div 
-                                        onClick={() => !isSpecial && toggleCourse(c.id)} 
-                                        className={!isSpecial ? "cursor-pointer" : ""}
+                                        onClick={() => !isSpecial && !isComplet && toggleCourse(c.id)} 
+                                        className={!isSpecial && !isComplet ? "cursor-pointer" : ""}
                                       >
                                         <div className="flex justify-between items-start mb-2">
                                           <div className="flex-1">
@@ -382,7 +401,16 @@ export default function InscriptionPage() {
                                             <p className="text-sm">{c.horaire} ({c.duree} min)</p>
                                           </div>
                                           <div className="flex items-center gap-2">
-                                            {!isSpecial && (
+                                            {!isSpecial && !isComplet && quota && placesRestantes <= 5 && placesRestantes > 0 && (
+                                              <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-300">
+                                                <Users className="h-3 w-3 mr-1" />
+                                                {placesRestantes} places
+                                              </Badge>
+                                            )}
+                                            {isComplet && (
+                                              <Badge variant="destructive" className="text-xs">Complet en ligne</Badge>
+                                            )}
+                                            {!isSpecial && !isComplet && (
                                               <div onClick={(e) => e.stopPropagation()}>
                                                 <Checkbox checked={isSelected} onCheckedChange={() => toggleCourse(c.id)} className="mt-1" />
                                               </div>
@@ -391,6 +419,22 @@ export default function InscriptionPage() {
                                           </div>
                                         </div>
                                       </div>
+                                      
+                                      {isComplet && (
+                                        <div className="mt-3 pt-3 border-t border-gray-200">
+                                          <p className="text-sm text-gray-600 mb-2">
+                                            Des places peuvent être disponibles sur place.
+                                          </p>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => setCoursListeAttente(c)}
+                                            className="w-full text-xs"
+                                          >
+                                            S&apos;inscrire sur la liste d&apos;attente
+                                          </Button>
+                                        </div>
+                                      )}
                                     </div>
                                   );
                                 })}
@@ -588,6 +632,12 @@ export default function InscriptionPage() {
         </div>
       </section>
       
+      {/* Modal de liste d'attente */}
+      <ListeAttenteModal 
+        cours={coursListeAttente}
+        open={!!coursListeAttente}
+        onClose={() => setCoursListeAttente(null)}
+      />
     </div>
   );
 }
