@@ -235,7 +235,7 @@ export default function InscriptionPage() {
 
   const days = useMemo(() => {
     const arr: string[] = [];
-    for (let d = 1; d <= 31; d += 1) arr.push(String(d));
+    for (let d = 1; d <= 31; d += 1) arr.push(String(d).padStart(2, "0"));
     return arr;
   }, []);
 
