@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         student_name, student_gender, student_birth_date, student_address,
         student_postal_code, student_city, student_phone, student_email,
         responsable1_name, responsable1_phone, responsable1_email,
-        responsable2_name, responsable2_phone, responsable2_email,
+        responsable2_name, responsable2_address, responsable2_postal_code, responsable2_city, responsable2_phone, responsable2_email,
         selected_courses, tarif_reduit, tarif_cours, adhesion, licence_ffd, tarif_total,
         danse_etudes_option, concours_on_stage, concours_classes,
         participation_spectacle, nombre_costumes, type_cours,
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
         ${validatedData.student_name}, ${validatedData.student_gender}, ${validatedData.student_birth_date}, ${validatedData.student_address},
         ${validatedData.student_postal_code}, ${validatedData.student_city}, ${validatedData.student_phone}, ${validatedData.student_email},
         ${validatedData.responsable1_name}, ${validatedData.responsable1_phone}, ${validatedData.responsable1_email},
-        ${validatedData.responsable2_name}, ${validatedData.responsable2_phone}, ${validatedData.responsable2_email},
+        ${validatedData.responsable2_name}, ${validatedData.responsable2_address}, ${validatedData.responsable2_postal_code}, ${validatedData.responsable2_city}, ${validatedData.responsable2_phone}, ${validatedData.responsable2_email},
         ${JSON.stringify(validatedData.selected_courses)}, ${validatedData.tarif_reduit}, ${validatedData.tarif_cours}, 
         ${validatedData.adhesion}, ${validatedData.licence_ffd}, ${validatedData.tarif_total},
         ${validatedData.danse_etudes_option}, ${validatedData.concours_on_stage}, ${validatedData.concours_classes},
@@ -98,17 +98,22 @@ export async function POST(request: Request) {
         ? Number.parseInt(validatedData.nombre_versements, 10)
         : undefined;
 
-      await envoyerEmailConfirmationInscription({
-        nomEleve: validatedData.student_name,
-        emailResponsable: validatedData.responsable1_email,
-        cours,
-        tarifTotal: validatedData.tarif_total,
-        tarifCours: validatedData.tarif_cours,
-        adhesion: validatedData.adhesion,
-        licenceFFD: validatedData.licence_ffd,
-        modePaiement,
-        nombreVersements,
-      });
+      // Pour les majeurs, utiliser l'email de l'élève, sinon celui du responsable
+      const emailDestination = validatedData.responsable1_email || validatedData.student_email || '';
+      
+      if (emailDestination) {
+        await envoyerEmailConfirmationInscription({
+          nomEleve: validatedData.student_name,
+          emailResponsable: emailDestination,
+          cours,
+          tarifTotal: validatedData.tarif_total,
+          tarifCours: validatedData.tarif_cours,
+          adhesion: validatedData.adhesion,
+          licenceFFD: validatedData.licence_ffd,
+          modePaiement,
+          nombreVersements,
+        });
+      }
       
       if (process.env.NODE_ENV === 'development') {
         console.log('Email de confirmation envoyé');

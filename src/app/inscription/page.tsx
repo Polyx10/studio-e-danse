@@ -14,14 +14,21 @@ import { planningCours, professeursColors, tarifsSpeciaux, fraisFixes, getTarifF
 import { useQuotas, incrementerQuota } from "@/hooks/useQuotas";
 import { ListeAttenteModal } from "@/components/ListeAttenteModal";
 
-function StepIndicator({ currentStep }: { currentStep: number }) {
-  const steps = [
-    { num: 1, label: "Élève" },
-    { num: 2, label: "Responsables" },
-    { num: 3, label: "Cours" },
-    { num: 4, label: "Options" },
-    { num: 5, label: "Validation" }
-  ];
+function StepIndicator({ currentStep, isMajeur }: { currentStep: number; isMajeur: boolean }) {
+  const steps = isMajeur
+    ? [
+        { num: 1, label: "Élève" },
+        { num: 2, label: "Cours" },
+        { num: 3, label: "Options" },
+        { num: 4, label: "Validation" }
+      ]
+    : [
+        { num: 1, label: "Élève" },
+        { num: 2, label: "Responsables" },
+        { num: 3, label: "Cours" },
+        { num: 4, label: "Options" },
+        { num: 5, label: "Validation" }
+      ];
   
   return (
     <div className="flex items-center justify-between mb-8">
@@ -37,7 +44,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
               ? "ml-2 text-sm font-medium hidden sm:block text-[#2D3436]"
               : "ml-2 text-sm font-medium hidden sm:block text-gray-400"
           }>{s.label}</span>
-          {i < 4 && (
+          {i < steps.length - 1 && (
             <div className={
               currentStep > s.num
                 ? "w-6 sm:w-12 h-0.5 mx-2 bg-[#2D3436]"
@@ -75,6 +82,9 @@ export default function InscriptionPage() {
     responsable1Phone: "",
     responsable1Email: "",
     responsable2Name: "",
+    responsable2Address: "",
+    responsable2PostalCode: "",
+    responsable2City: "",
     responsable2Phone: "",
     responsable2Email: "",
     tarifReduit: false,
@@ -139,6 +149,9 @@ export default function InscriptionPage() {
         responsable1_phone: formData.responsable1Phone,
         responsable1_email: formData.responsable1Email,
         responsable2_name: formData.responsable2Name || null,
+        responsable2_address: formData.responsable2Address || null,
+        responsable2_postal_code: formData.responsable2PostalCode || null,
+        responsable2_city: formData.responsable2City || null,
         responsable2_phone: formData.responsable2Phone || null,
         responsable2_email: formData.responsable2Email || null,
         selected_courses: selectedCourses,
@@ -239,8 +252,20 @@ export default function InscriptionPage() {
     return arr;
   }, []);
 
-  const canProceedStep1 = Boolean(formData.studentName && formData.studentBirthDate);
-  const canProceedStep2 = Boolean(formData.responsable1Name && formData.responsable1Phone && formData.responsable1Email);
+  const isMajeur = tarifCalcule.age >= 18;
+  const canProceedStep1 = Boolean(
+    formData.studentName && 
+    formData.studentBirthDate &&
+    (!isMajeur || (formData.studentAddress && formData.studentPostalCode && formData.studentCity && formData.studentPhone && formData.studentEmail))
+  );
+  const canProceedStep2 = Boolean(
+    formData.responsable1Name && 
+    formData.responsable1Phone && 
+    formData.responsable1Email &&
+    formData.studentAddress &&
+    formData.studentPostalCode &&
+    formData.studentCity
+  );
   const canProceedStep3 = selectedCourses.length > 0 || formData.danseEtudesOption !== "0";
   const canSubmit = Boolean(formData.acceptRules && formData.signatureName);
 
@@ -301,7 +326,7 @@ export default function InscriptionPage() {
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
-            <StepIndicator currentStep={step} />
+            <StepIndicator currentStep={step} isMajeur={isMajeur} />
 
             <div className="grid lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
@@ -374,27 +399,95 @@ export default function InscriptionPage() {
                           </div>
                           {formData.studentBirthDate && <p className="text-sm text-gray-500">Âge : {tarifCalcule.age} ans</p>}
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="studentAddress">Adresse (pour les adhérents majeurs uniquement)</Label>
-                          <Input id="studentAddress" name="studentAddress" value={formData.studentAddress} onChange={handleInputChange} placeholder="Sera remplie par le responsable légal si non fournie" />
-                        </div>
-                        <div className="grid sm:grid-cols-2 gap-4">
-                          <div className="space-y-2"><Label htmlFor="studentPostalCode">Code Postal (optionnel)</Label><Input id="studentPostalCode" name="studentPostalCode" value={formData.studentPostalCode} onChange={handleInputChange} /></div>
-                          <div className="space-y-2"><Label htmlFor="studentCity">Ville (optionnel)</Label><Input id="studentCity" name="studentCity" value={formData.studentCity} onChange={handleInputChange} /></div>
-                        </div>
-                        <div className="grid sm:grid-cols-2 gap-4">
-                          <div className="space-y-2"><Label htmlFor="studentPhone">Téléphone (optionnel)</Label><Input id="studentPhone" name="studentPhone" type="tel" value={formData.studentPhone} onChange={handleInputChange} placeholder="Celui du responsable sera utilisé" /></div>
-                          <div className="space-y-2"><Label htmlFor="studentEmail">Courriel (optionnel)</Label><Input id="studentEmail" name="studentEmail" type="email" value={formData.studentEmail} onChange={handleInputChange} placeholder="Celui du responsable sera utilisé" /></div>
-                        </div>
+                        {isMajeur && (
+                          <>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-1">
+                              <p className="text-sm font-medium text-blue-900">ℹ️ Adhérent majeur détecté</p>
+                              <p className="text-sm text-blue-700">Les champs suivants sont obligatoires pour les adhérents de 18 ans et plus.</p>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="studentAddress">
+                                Adresse <span className="text-red-500">*</span>
+                              </Label>
+                              <Input 
+                                id="studentAddress" 
+                                name="studentAddress" 
+                                value={formData.studentAddress} 
+                                onChange={handleInputChange} 
+                                placeholder="Adresse complète"
+                                required
+                              />
+                            </div>
+                            <div className="grid sm:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="studentPostalCode">
+                                  Code Postal <span className="text-red-500">*</span>
+                                </Label>
+                                <Input 
+                                  id="studentPostalCode" 
+                                  name="studentPostalCode" 
+                                  value={formData.studentPostalCode} 
+                                  onChange={handleInputChange}
+                                  placeholder="29200"
+                                  required
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="studentCity">
+                                  Ville <span className="text-red-500">*</span>
+                                </Label>
+                                <Input 
+                                  id="studentCity" 
+                                  name="studentCity" 
+                                  value={formData.studentCity} 
+                                  onChange={handleInputChange}
+                                  placeholder="Brest"
+                                  required
+                                />
+                              </div>
+                            </div>
+                            <div className="grid sm:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="studentPhone">
+                                  Téléphone <span className="text-red-500">*</span>
+                                </Label>
+                                <Input 
+                                  id="studentPhone" 
+                                  name="studentPhone" 
+                                  type="tel" 
+                                  value={formData.studentPhone} 
+                                  onChange={handleInputChange} 
+                                  placeholder="06 12 34 56 78"
+                                  required
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="studentEmail">
+                                  Courriel <span className="text-red-500">*</span>
+                                </Label>
+                                <Input 
+                                  id="studentEmail" 
+                                  name="studentEmail" 
+                                  type="email" 
+                                  value={formData.studentEmail} 
+                                  onChange={handleInputChange} 
+                                  placeholder="email@exemple.fr"
+                                  required
+                                />
+                              </div>
+                            </div>
+                          </>
+                        )}
                         <div className="flex justify-end pt-4">
                           <Button 
                             type="button" 
                             onClick={() => {
-                              if (formData.studentName && formData.studentBirthDate) {
-                                setStep(2);
+                              if (canProceedStep1) {
+                                // Si majeur, sauter l'étape 2 (responsables) et aller directement à l'étape 3 (cours)
+                                setStep(isMajeur ? 3 : 2);
                               }
                             }} 
-                            disabled={!(formData.studentName && formData.studentBirthDate)} 
+                            disabled={!canProceedStep1} 
                             className="bg-[#2D3436] hover:bg-[#3d4446] disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Continuer
@@ -404,13 +497,18 @@ export default function InscriptionPage() {
                     </Card>
                   )}
 
-                  {step === 2 && (
+                  {step === 2 && !isMajeur && (
                     <Card className="border-0 shadow-lg">
                       <CardHeader><CardTitle>Responsables légaux (pour les adhérents mineurs uniquement)</CardTitle></CardHeader>
                       <CardContent className="space-y-8">
                         <div className="space-y-4">
                           <h3 className="font-semibold border-b pb-2">Responsable légal 1 *</h3>
-                          <div className="space-y-2"><Label>Nom & Prénom</Label><Input name="responsable1Name" value={formData.responsable1Name} onChange={handleInputChange} required /></div>
+                          <div className="space-y-2"><Label>Nom & Prénom *</Label><Input name="responsable1Name" value={formData.responsable1Name} onChange={handleInputChange} required /></div>
+                          <div className="space-y-2"><Label>Adresse *</Label><Input name="studentAddress" value={formData.studentAddress} onChange={handleInputChange} placeholder="Adresse complète" required /></div>
+                          <div className="grid sm:grid-cols-2 gap-4">
+                            <div className="space-y-2"><Label>Code Postal *</Label><Input name="studentPostalCode" value={formData.studentPostalCode} onChange={handleInputChange} placeholder="29200" required /></div>
+                            <div className="space-y-2"><Label>Ville *</Label><Input name="studentCity" value={formData.studentCity} onChange={handleInputChange} placeholder="Brest" required /></div>
+                          </div>
                           <div className="grid sm:grid-cols-2 gap-4">
                             <div className="space-y-2"><Label>Téléphone *</Label><Input name="responsable1Phone" type="tel" value={formData.responsable1Phone} onChange={handleInputChange} required /></div>
                             <div className="space-y-2"><Label>Courriel *</Label><Input name="responsable1Email" type="email" value={formData.responsable1Email} onChange={handleInputChange} required /></div>
@@ -419,6 +517,11 @@ export default function InscriptionPage() {
                         <div className="space-y-4">
                           <h3 className="font-semibold border-b pb-2">Responsable légal 2 (optionnel)</h3>
                           <div className="space-y-2"><Label>Nom & Prénom</Label><Input name="responsable2Name" value={formData.responsable2Name} onChange={handleInputChange} /></div>
+                          <div className="space-y-2"><Label>Adresse</Label><Input name="responsable2Address" value={formData.responsable2Address} onChange={handleInputChange} placeholder="Adresse complète" /></div>
+                          <div className="grid sm:grid-cols-2 gap-4">
+                            <div className="space-y-2"><Label>Code Postal</Label><Input name="responsable2PostalCode" value={formData.responsable2PostalCode} onChange={handleInputChange} placeholder="29200" /></div>
+                            <div className="space-y-2"><Label>Ville</Label><Input name="responsable2City" value={formData.responsable2City} onChange={handleInputChange} placeholder="Brest" /></div>
+                          </div>
                           <div className="grid sm:grid-cols-2 gap-4">
                             <div className="space-y-2"><Label>Téléphone</Label><Input name="responsable2Phone" type="tel" value={formData.responsable2Phone} onChange={handleInputChange} /></div>
                             <div className="space-y-2"><Label>Courriel</Label><Input name="responsable2Email" type="email" value={formData.responsable2Email} onChange={handleInputChange} /></div>
@@ -549,7 +652,7 @@ export default function InscriptionPage() {
                         </div>
 
                         <div className="flex justify-between pt-4">
-                          <Button type="button" variant="outline" onClick={() => setStep(2)}>Retour</Button>
+                          <Button type="button" variant="outline" onClick={() => setStep(isMajeur ? 1 : 2)}>Retour</Button>
                           <Button type="button" onClick={() => setStep(4)} disabled={!canProceedStep3} className="bg-[#2D3436] hover:bg-[#3d4446]">Continuer</Button>
                         </div>
                       </CardContent>

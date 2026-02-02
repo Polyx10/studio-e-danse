@@ -23,6 +23,9 @@ CREATE TABLE inscriptions (
   responsable1_phone TEXT NOT NULL,
   responsable1_email TEXT NOT NULL,
   responsable2_name TEXT,
+  responsable2_address TEXT,
+  responsable2_postal_code TEXT,
+  responsable2_city TEXT,
   responsable2_phone TEXT,
   responsable2_email TEXT,
   
