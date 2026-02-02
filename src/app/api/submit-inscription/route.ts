@@ -52,8 +52,9 @@ export async function POST(request: Request) {
         responsable2_name, responsable2_phone, responsable2_email,
         selected_courses, tarif_reduit, tarif_cours, adhesion, licence_ffd, tarif_total,
         danse_etudes_option, concours_on_stage, concours_classes,
+        participation_spectacle, nombre_costumes, type_cours,
         mode_paiement, nombre_versements, reglement_accepte, droit_image,
-        adherent_precedent
+        signature_name, adherent_precedent
       ) VALUES (
         ${validatedData.student_name}, ${validatedData.student_gender}, ${validatedData.student_birth_date}, ${validatedData.student_address},
         ${validatedData.student_postal_code}, ${validatedData.student_city}, ${validatedData.student_phone}, ${validatedData.student_email},
@@ -62,7 +63,9 @@ export async function POST(request: Request) {
         ${JSON.stringify(validatedData.selected_courses)}, ${validatedData.tarif_reduit}, ${validatedData.tarif_cours}, 
         ${validatedData.adhesion}, ${validatedData.licence_ffd}, ${validatedData.tarif_total},
         ${validatedData.danse_etudes_option}, ${validatedData.concours_on_stage}, ${validatedData.concours_classes},
-        ${validatedData.mode_paiement}, ${validatedData.nombre_versements}, ${validatedData.reglement_accepte}, ${validatedData.droit_image},
+        ${validatedData.participation_spectacle}, ${validatedData.nombre_costumes}, ${validatedData.type_cours},
+        ${validatedData.mode_paiement ? JSON.stringify(validatedData.mode_paiement) : null}, ${validatedData.nombre_versements}, ${validatedData.accept_rules}, ${validatedData.droit_image},
+        ${validatedData.signature_name},
         ${validatedData.adherent_precedent}
       )
       RETURNING *
@@ -87,6 +90,14 @@ export async function POST(request: Request) {
         })
         .filter((c): c is { nom: string; jour: string; horaire: string } => c !== null);
 
+      const modePaiement = Array.isArray(validatedData.mode_paiement)
+        ? validatedData.mode_paiement.join(', ')
+        : undefined;
+
+      const nombreVersements = validatedData.nombre_versements
+        ? Number.parseInt(validatedData.nombre_versements, 10)
+        : undefined;
+
       await envoyerEmailConfirmationInscription({
         nomEleve: validatedData.student_name,
         emailResponsable: validatedData.responsable1_email,
@@ -95,8 +106,8 @@ export async function POST(request: Request) {
         tarifCours: validatedData.tarif_cours,
         adhesion: validatedData.adhesion,
         licenceFFD: validatedData.licence_ffd,
-        modePaiement: validatedData.mode_paiement,
-        nombreVersements: validatedData.nombre_versements,
+        modePaiement,
+        nombreVersements,
       });
       
       if (process.env.NODE_ENV === 'development') {
