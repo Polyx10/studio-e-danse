@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -195,6 +195,50 @@ export default function InscriptionPage() {
     }
   };
 
+  const [birthDay, setBirthDay] = useState("");
+  const [birthMonth, setBirthMonth] = useState("");
+  const [birthYear, setBirthYear] = useState("");
+
+  useEffect(() => {
+    const v = formData.studentBirthDate;
+    if (!v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return;
+    const [year, month, day] = v.split("-");
+    if (year !== birthYear) setBirthYear(year);
+    if (month !== birthMonth) setBirthMonth(month);
+    if (day !== birthDay) setBirthDay(day);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.studentBirthDate]);
+
+  useEffect(() => {
+    if (!birthYear || !birthMonth || !birthDay) {
+      if (formData.studentBirthDate !== "") {
+        setFormData((p) => ({ ...p, studentBirthDate: "" }));
+      }
+      return;
+    }
+
+    const yyyy = birthYear;
+    const mm = birthMonth.padStart(2, "0");
+    const dd = birthDay.padStart(2, "0");
+    const next = `${yyyy}-${mm}-${dd}`;
+    if (formData.studentBirthDate !== next) {
+      setFormData((p) => ({ ...p, studentBirthDate: next }));
+    }
+  }, [birthDay, birthMonth, birthYear, formData.studentBirthDate]);
+
+  const years = useMemo(() => {
+    const current = new Date().getFullYear();
+    const arr: string[] = [];
+    for (let y = current; y >= 1900; y -= 1) arr.push(String(y));
+    return arr;
+  }, []);
+
+  const days = useMemo(() => {
+    const arr: string[] = [];
+    for (let d = 1; d <= 31; d += 1) arr.push(String(d));
+    return arr;
+  }, []);
+
   const canProceedStep1 = Boolean(formData.studentName && formData.studentBirthDate);
   const canProceedStep2 = Boolean(formData.responsable1Name && formData.responsable1Phone && formData.responsable1Email);
   const canProceedStep3 = selectedCourses.length > 0 || formData.danseEtudesOption !== "0";
@@ -285,7 +329,49 @@ export default function InscriptionPage() {
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="studentBirthDate">Date de naissance *</Label>
-                          <Input id="studentBirthDate" name="studentBirthDate" type="date" value={formData.studentBirthDate} onChange={handleInputChange} required />
+                          <div className="grid grid-cols-3 gap-3">
+                            <Select value={birthDay} onValueChange={(v: string) => setBirthDay(v)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Jour" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {days.map((d) => (
+                                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            <Select value={birthMonth} onValueChange={(v: string) => setBirthMonth(v)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Mois" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="01">Janvier</SelectItem>
+                                <SelectItem value="02">Février</SelectItem>
+                                <SelectItem value="03">Mars</SelectItem>
+                                <SelectItem value="04">Avril</SelectItem>
+                                <SelectItem value="05">Mai</SelectItem>
+                                <SelectItem value="06">Juin</SelectItem>
+                                <SelectItem value="07">Juillet</SelectItem>
+                                <SelectItem value="08">Août</SelectItem>
+                                <SelectItem value="09">Septembre</SelectItem>
+                                <SelectItem value="10">Octobre</SelectItem>
+                                <SelectItem value="11">Novembre</SelectItem>
+                                <SelectItem value="12">Décembre</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Select value={birthYear} onValueChange={(v: string) => setBirthYear(v)}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Année" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {years.map((y) => (
+                                  <SelectItem key={y} value={y}>{y}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                           {formData.studentBirthDate && <p className="text-sm text-gray-500">Âge : {tarifCalcule.age} ans</p>}
                         </div>
                         <div className="space-y-2">
