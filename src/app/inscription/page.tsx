@@ -204,17 +204,20 @@ export default function InscriptionPage() {
     }
   }, [versementsDisponibles]);
 
+  // Pas de préinscription quand le prorata est actif (prorata = en cours d'année, pas de période de préinscription)
+  const preinscriptionEffective = preinscriptionActive && !prorataActif;
+
   const echeances = useMemo(() => {
     if (tarifCalcule.total <= 0) return [];
     const nbVersements = parseInt(formData.nombreVersements) || 1;
     return calculerEcheancierSansCentimes(
       tarifCalcule.total,
       nbVersements,
-      preinscriptionActive,
+      preinscriptionEffective,
       tarifCalcule.adhesion,
       tarifCalcule.licenceFFD
     );
-  }, [tarifCalcule.total, tarifCalcule.adhesion, tarifCalcule.licenceFFD, formData.nombreVersements, preinscriptionActive]);
+  }, [tarifCalcule.total, tarifCalcule.adhesion, tarifCalcule.licenceFFD, formData.nombreVersements, preinscriptionEffective]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -823,7 +826,7 @@ export default function InscriptionPage() {
                           </RadioGroup>
                         </div>
 
-                        {preinscriptionActive && (
+                        {preinscriptionEffective && (
                           <div className="space-y-4">
                             <h3 className="font-semibold border-b pb-2">Préinscription</h3>
                             <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
@@ -966,7 +969,7 @@ export default function InscriptionPage() {
                                   modePaiement: formData.modePaiement,
                                   nombreVersements: formData.nombreVersements,
                                   echeances: echeances,
-                                  avecPreinscription: preinscriptionActive,
+                                  avecPreinscription: preinscriptionEffective,
                                   montantPreinscription: montantPreinscription,
                                   nomSignature: formData.signatureName || `${formData.studentLastName} ${formData.studentFirstName}`,
                                   dateInscription: new Date().toLocaleDateString('fr-FR'),
@@ -1066,7 +1069,7 @@ export default function InscriptionPage() {
                                   modePaiement: formData.modePaiement,
                                   nombreVersements: formData.nombreVersements,
                                   echeances: echeances,
-                                  avecPreinscription: preinscriptionActive,
+                                  avecPreinscription: preinscriptionEffective,
                                   montantPreinscription: montantPreinscription,
                                   nomSignature: formData.signatureName,
                                   dateInscription: new Date().toLocaleDateString('fr-FR'),
@@ -1129,7 +1132,7 @@ export default function InscriptionPage() {
                     <div className="border-t pt-3">
                       <div className="flex justify-between text-lg font-bold"><span>TOTAL</span><span className="text-[#F9CA24]">{tarifCalcule.total} €</span></div>
                     </div>
-                    {preinscriptionActive && tarifCalcule.total > 0 && (
+                    {preinscriptionEffective && tarifCalcule.total > 0 && (
                       <div className="bg-green-50 rounded p-2 mt-2">
                         <p className="text-xs font-semibold text-green-700">Préinscription : {montantPreinscription} €</p>
                       </div>
