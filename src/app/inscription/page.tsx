@@ -940,6 +940,59 @@ export default function InscriptionPage() {
                                 </p>
                               </div>
                             )}
+                            <div className="pt-2">
+                              <p className="text-xs text-gray-500 mb-2">Conservez ce document pour votre suivi personnel.</p>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="w-full"
+                                onClick={() => {
+                                  const coursSelectionnesNoms = selectedCourses.map(id => {
+                                    const c = planningCours.find((x: CoursPlanning) => x.id === id);
+                                    return c ? `${c.nom} (${c.jour} ${c.horaire})` : id;
+                                  });
+                                  genererPDFRecapitulatif({
+                                    nomEleve: `${formData.studentLastName} ${formData.studentFirstName}`,
+                                    sexe: formData.studentGender,
+                                    dateNaissance: formData.studentBirthDate,
+                                    age: tarifCalcule.age,
+                                    adresse: formData.studentAddress,
+                                    codePostal: formData.studentPostalCode,
+                                    ville: formData.studentCity,
+                                    telephone: formData.studentPhone,
+                                    email: formData.studentEmail,
+                                    adherentPrecedent: formData.adherentPrecedent,
+                                    responsable1Nom: formData.responsable1Name,
+                                    responsable1Tel: formData.responsable1Phone,
+                                    responsable1Email: formData.responsable1Email,
+                                    responsable2Nom: formData.responsable2Name || undefined,
+                                    responsable2Tel: formData.responsable2Phone || undefined,
+                                    responsable2Email: formData.responsable2Email || undefined,
+                                    coursSelectionnes: coursSelectionnesNoms,
+                                    tarifCours: tarifCalcule.tarifCours,
+                                    tarifDanseEtudes: tarifCalcule.tarifDanseEtudes,
+                                    adhesion: tarifCalcule.adhesion,
+                                    licenceFFD: tarifCalcule.licenceFFD,
+                                    totalGeneral: tarifCalcule.total,
+                                    tarifReduit: formData.tarifReduit,
+                                    danseEtudes: formData.danseEtudesOption,
+                                    participationSpectacle: formData.participationSpectacle,
+                                    nombreCostumes: formData.nombreCostumes,
+                                    droitImage: formData.droitImage,
+                                    modePaiement: formData.modePaiement,
+                                    nombreVersements: formData.nombreVersements,
+                                    echeances: echeances,
+                                    avecPreinscription: preinscriptionEffective,
+                                    montantPreinscription: montantPreinscription,
+                                    nomSignature: formData.signatureName || `${formData.studentLastName} ${formData.studentFirstName}`,
+                                    dateInscription: new Date().toLocaleDateString('fr-FR'),
+                                  });
+                                }}
+                              >
+                                Télécharger l&apos;échéancier PDF
+                              </Button>
+                            </div>
                           </div>
                         )}
 
