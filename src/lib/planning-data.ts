@@ -80,19 +80,19 @@ export interface NiveauConfig {
 }
 
 export const grilleNiveaux: NiveauConfig[] = [
-  { niveau: 'Classique Ado 1', ageMin: 9, ageMax: 12, coursIds: ['lun-1', 'mer-10'] },
+  { niveau: 'Classique Ado 1', ageMin: 9, ageMax: 13, coursIds: ['lun-1', 'mer-10'] },
   { niveau: 'BAS', ageMin: 11, ageMax: null, coursIds: ['lun-2', 'mar-4', 'mer-12', 'ven-1'] },
   { niveau: 'Classique Adulte Intermédiaire', ageMin: 16, ageMax: null, coursIds: ['lun-3', 'mar-6'] },
   { niveau: 'Danse Études', ageMin: null, ageMax: null, coursIds: ['mar-1', 'ven-2'], surSelection: true },
-  { niveau: 'Classique Ado 2', ageMin: 12, ageMax: 19, coursIds: ['mar-2', 'ven-3'] },
+  { niveau: 'Classique Ado 2', ageMin: 12, ageMax: null, coursIds: ['mar-2', 'ven-3'] },
   { niveau: 'Jazz ADO', ageMin: 11, ageMax: 15, coursIds: ['mar-3', 'mer-6'] },
   { niveau: 'Jazz Adulte Débutant', ageMin: 26, ageMax: null, coursIds: ['mar-5'] },
   { niveau: 'Jazz Adulte Intermédiaire', ageMin: 26, ageMax: null, coursIds: ['mar-7', 'sam-9'] },
   { niveau: 'Éveils', ageMin: 4, ageMax: 6, coursIds: ['mer-1', 'mer-7', 'sam-7'] },
-  { niveau: 'Classique Initiation', ageMin: 6, ageMax: 7, coursIds: ['mer-2', 'sam-2'] },
-  { niveau: 'Jazz KID', ageMin: 8, ageMax: 11, coursIds: ['mer-4', 'jeu-1'] },
-  { niveau: 'Classique Enfant 1', ageMin: 7, ageMax: 8, coursIds: ['mer-5'] },
-  { niveau: 'Classique Enfant 2', ageMin: 8, ageMax: 9, coursIds: ['mer-8'] },
+  { niveau: 'Classique Initiation', ageMin: 6, ageMax: 8, coursIds: ['mer-2', 'sam-2'] },
+  { niveau: 'Jazz KID', ageMin: 8, ageMax: 12, coursIds: ['mer-4', 'jeu-1'] },
+  { niveau: 'Classique Enfant 1', ageMin: 7, ageMax: 9, coursIds: ['mer-5'] },
+  { niveau: 'Classique Enfant 2', ageMin: 8, ageMax: 10, coursIds: ['mer-8'] },
   { niveau: 'Jazz Jeune Adulte Inter', ageMin: 15, ageMax: 19, coursIds: ['mer-9', 'ven-4'] },
   { niveau: 'Jazz Jeune Adulte Avancé', ageMin: 16, ageMax: null, coursIds: ['mer-11', 'ven-6'] },
   { niveau: 'Jazz Adulte Avancé', ageMin: 26, ageMax: null, coursIds: ['mer-13'] },
@@ -102,12 +102,12 @@ export const grilleNiveaux: NiveauConfig[] = [
   { niveau: 'Classique Adulte Débutant', ageMin: 16, ageMax: null, coursIds: ['ven-5', 'sam-8'] },
   { niveau: 'Concours Jazz Adulte', ageMin: null, ageMax: null, coursIds: ['jeu-5'], surSelection: true },
   { niveau: 'Contemporain Adulte Avancé', ageMin: 16, ageMax: null, coursIds: ['ven-7'] },
-  { niveau: 'Baby danse', ageMin: 3, ageMax: 4, coursIds: ['sam-1'] },
+  { niveau: 'Baby danse', ageMin: 3, ageMax: 5, coursIds: ['sam-1'] },
   { niveau: 'Concours Jazz KID', ageMin: null, ageMax: null, coursIds: ['sam-3'], surSelection: true },
-  { niveau: 'Jazz Initiation', ageMin: 6, ageMax: 8, coursIds: ['sam-4'] },
-  { niveau: 'Classique Enfant 1 & 2', ageMin: 7, ageMax: 9, coursIds: ['sam-5'] },
+  { niveau: 'Jazz Initiation', ageMin: 6, ageMax: 9, coursIds: ['sam-4'] },
+  { niveau: 'Classique Enfant 1 & 2', ageMin: 7, ageMax: 10, coursIds: ['sam-5'] },
   { niveau: 'Concours Jazz ADO', ageMin: null, ageMax: null, coursIds: ['sam-6'], surSelection: true },
-  { niveau: 'Contemporain ADO', ageMin: 11, ageMax: 16, coursIds: ['sam-11'] },
+  { niveau: 'Contemporain ADO', ageMin: 11, ageMax: 17, coursIds: ['sam-11'] },
 ];
 
 // Pour une date de naissance, retourner les IDs de cours recommandés
