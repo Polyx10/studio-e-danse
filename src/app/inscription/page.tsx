@@ -73,6 +73,7 @@ export default function InscriptionPage() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [pdfTelecharge, setPdfTelecharge] = useState(false);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [coursListeAttente, setCoursListeAttente] = useState<CoursPlanning | null>(null);
   
@@ -1038,9 +1039,10 @@ export default function InscriptionPage() {
                                   nomSignature: formData.signatureName,
                                   dateInscription: new Date().toLocaleDateString('fr-FR'),
                                 });
+                                setPdfTelecharge(true);
                               }}
                             >
-                              Télécharger le récapitulatif PDF
+                              {pdfTelecharge ? '✓ Récapitulatif PDF téléchargé' : 'Télécharger le récapitulatif PDF'}
                             </Button>
                           </div>
                         </div>
@@ -1057,9 +1059,14 @@ export default function InscriptionPage() {
 
                         <div className="flex justify-between pt-4">
                           <Button type="button" variant="outline" onClick={() => setStep(4)}>Retour</Button>
-                          <Button type="submit" disabled={!canSubmit || isSubmitting} className="bg-[#F9CA24] text-[#2D3436] hover:bg-amber-400">
-                            {isSubmitting ? "Envoi..." : "Envoyer la pré-inscription"}
-                          </Button>
+                          <div className="text-right">
+                            {!pdfTelecharge && (
+                              <p className="text-xs text-red-600 mb-1">Veuillez d&apos;abord télécharger le récapitulatif PDF ci-dessus.</p>
+                            )}
+                            <Button type="submit" disabled={!canSubmit || isSubmitting || !pdfTelecharge} className="bg-[#F9CA24] text-[#2D3436] hover:bg-amber-400">
+                              {isSubmitting ? "Envoi..." : "Envoyer la pré-inscription"}
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
