@@ -1064,7 +1064,7 @@ export default function InscriptionPage() {
                               <p className="text-xs text-red-600 mb-1">Veuillez d&apos;abord télécharger le récapitulatif PDF ci-dessus.</p>
                             )}
                             <Button type="submit" disabled={!canSubmit || isSubmitting || !pdfTelecharge} className="bg-[#F9CA24] text-[#2D3436] hover:bg-amber-400">
-                              {isSubmitting ? "Envoi..." : "Envoyer la pré-inscription"}
+                              {isSubmitting ? "Envoi..." : "Valider mon inscription"}
                             </Button>
                           </div>
                         </div>
