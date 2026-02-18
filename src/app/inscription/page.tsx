@@ -16,6 +16,9 @@ import { useQuotas, incrementerQuota } from "@/hooks/useQuotas";
 import { ListeAttenteModal } from "@/components/ListeAttenteModal";
 import { calculerEcheancierSansCentimes } from "@/lib/echeancier";
 import { genererPDFRecapitulatif } from "@/lib/pdf-recapitulatif";
+import { useConfig } from "@/hooks/useConfig";
+import { getPeriodeFromDate, calculerTarifProrata, periodesLabels, vacancesDefaut2526 } from "@/lib/prorata-data";
+import type { PeriodeProrata, VacancesScolaires } from "@/lib/prorata-data";
 
 function StepIndicator({ currentStep, isMajeur }: { currentStep: number; isMajeur: boolean }) {
   const steps = isMajeur
@@ -79,6 +82,14 @@ export default function InscriptionPage() {
   // Charger les quotas pour tous les cours
   const coursIds = planningCours.map(c => c.id);
   const { quotas, loading: quotasLoading } = useQuotas(coursIds);
+
+  // Charger la config (préinscription, prorata)
+  const { preinscriptionActive, preinscriptionAnciensActive, preinscriptionTousActive, montantPreinscription, loading: configLoading } = useConfig();
+  const [prorataConfig, setProrataConfig] = useState<{ vacances: VacancesScolaires; prorata_mode: string; prorata_periode_forcee: string | null }>({ vacances: vacancesDefaut2526, prorata_mode: 'auto', prorata_periode_forcee: null });
+
+  useEffect(() => {
+    fetch('/api/prorata-config').then(r => r.json()).then(data => setProrataConfig(data)).catch(() => {});
+  }, []);
   
   const [formData, setFormData] = useState({
     adherentPrecedent: false,
@@ -135,12 +146,39 @@ export default function InscriptionPage() {
     setSelectedCourses(prev => prev.includes(courseId) ? prev.filter(id => id !== courseId) : [...prev, courseId]);
   };
 
+  // Déterminer si le prorata s'applique
+  const prorataActif = useMemo(() => {
+    if (prorataConfig.prorata_mode === 'force_off') return false;
+    if (prorataConfig.prorata_mode === 'force_on') return true;
+    // Mode auto : prorata si on n'est pas en période 1A (rentrée)
+    const periode = getPeriodeFromDate(new Date(), prorataConfig.vacances);
+    return periode !== '1A';
+  }, [prorataConfig]);
+
+  const periodeActuelle = useMemo((): PeriodeProrata => {
+    if (prorataConfig.prorata_mode === 'force_on' && prorataConfig.prorata_periode_forcee) {
+      return prorataConfig.prorata_periode_forcee as PeriodeProrata;
+    }
+    return getPeriodeFromDate(new Date(), prorataConfig.vacances);
+  }, [prorataConfig]);
+
   const tarifCalcule = useMemo(() => {
     const selectedCoursesData = planningCours.filter((c: CoursPlanning) => selectedCourses.includes(c.id));
     const totalMinutes = selectedCoursesData.filter((c: CoursPlanning) => !c.isDanseEtudes && !c.isConcours).reduce((sum: number, c: CoursPlanning) => sum + c.duree, 0);
     const age = calculateAge(formData.studentBirthDate);
     const isReduit = formData.tarifReduit;
-    const tarifCours = totalMinutes > 0 ? getTarifForDuree(totalMinutes, isReduit) : 0;
+
+    // Tarif cours : prorata ou plein tarif
+    let tarifCours = 0;
+    if (totalMinutes > 0) {
+      if (prorataActif) {
+        tarifCours = calculerTarifProrata(totalMinutes, isReduit, periodeActuelle);
+      } else {
+        tarifCours = getTarifForDuree(totalMinutes, isReduit);
+      }
+    }
+    const tarifCoursAnnuel = totalMinutes > 0 ? getTarifForDuree(totalMinutes, isReduit) : 0;
+
     const tarifDanseEtudes = formData.danseEtudesOption === "1" ? tarifsSpeciaux.danseEtudes1 : formData.danseEtudesOption === "2" ? tarifsSpeciaux.danseEtudes2 : 0;
     const tarifConcours = (formData.concoursOnStage ? tarifsSpeciaux.onStage : 0) + (formData.concoursClasses ? tarifsSpeciaux.classesConcours : 0);
     const adhesion = fraisFixes.adhesion;
@@ -148,8 +186,23 @@ export default function InscriptionPage() {
     const totalCours = tarifCours + tarifDanseEtudes + tarifConcours;
     const totalFrais = adhesion + licenceFFD;
     const total = totalCours + totalFrais;
-    return { totalMinutes, tarifCours, tarifDanseEtudes, tarifConcours, adhesion, licenceFFD, totalCours, totalFrais, total, age };
-  }, [selectedCourses, formData.tarifReduit, formData.danseEtudesOption, formData.concoursOnStage, formData.concoursClasses, formData.studentBirthDate]);
+    return { totalMinutes, tarifCours, tarifCoursAnnuel, tarifDanseEtudes, tarifConcours, adhesion, licenceFFD, totalCours, totalFrais, total, age };
+  }, [selectedCourses, formData.tarifReduit, formData.danseEtudesOption, formData.concoursOnStage, formData.concoursClasses, formData.studentBirthDate, prorataActif, periodeActuelle]);
+
+  // Options de versements disponibles selon le montant des cours
+  const versementsDisponibles = useMemo(() => {
+    const options = ["1"];
+    if (tarifCalcule.tarifCours >= 270) options.push("3");
+    if (tarifCalcule.tarifCours >= 500) options.push("10");
+    return options;
+  }, [tarifCalcule.tarifCours]);
+
+  // Réinitialiser le nombre de versements si l'option n'est plus disponible
+  useEffect(() => {
+    if (!versementsDisponibles.includes(formData.nombreVersements)) {
+      setFormData(prev => ({ ...prev, nombreVersements: "1" }));
+    }
+  }, [versementsDisponibles]);
 
   const echeances = useMemo(() => {
     if (tarifCalcule.total <= 0) return [];
@@ -157,11 +210,11 @@ export default function InscriptionPage() {
     return calculerEcheancierSansCentimes(
       tarifCalcule.total,
       nbVersements,
-      false,
+      preinscriptionActive,
       tarifCalcule.adhesion,
       tarifCalcule.licenceFFD
     );
-  }, [tarifCalcule.total, tarifCalcule.adhesion, tarifCalcule.licenceFFD, formData.nombreVersements]);
+  }, [tarifCalcule.total, tarifCalcule.adhesion, tarifCalcule.licenceFFD, formData.nombreVersements, preinscriptionActive]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -770,6 +823,42 @@ export default function InscriptionPage() {
                           </RadioGroup>
                         </div>
 
+                        {preinscriptionActive && (
+                          <div className="space-y-4">
+                            <h3 className="font-semibold border-b pb-2">Préinscription</h3>
+                            <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded">
+                              <p className="text-sm text-green-800 font-medium mb-1">
+                                📋 Période de préinscription en cours
+                                {preinscriptionAnciensActive && !preinscriptionTousActive && " (réservée aux anciens adhérents)"}
+                                {preinscriptionTousActive && " (ouverte à tous)"}
+                              </p>
+                              <p className="text-sm text-green-700">
+                                Un acompte de <strong>{montantPreinscription} €</strong> est demandé sous 5 jours pour valider votre inscription.
+                              </p>
+                              <p className="text-xs text-green-600 mt-1">
+                                Composition : Adhésion {tarifCalcule.adhesion}€ + Licence FFD {tarifCalcule.licenceFFD}€ + Acompte cours {montantPreinscription - tarifCalcule.adhesion - tarifCalcule.licenceFFD}€
+                              </p>
+                              <p className="text-xs text-green-600 mt-1">
+                                Ce montant sera déduit de votre total lors du calcul de l&apos;échéancier.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {prorataActif && (
+                          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+                            <p className="text-sm text-blue-800">
+                              <strong>📊 Tarif prorata appliqué</strong> — Période : {periodesLabels[periodeActuelle]}
+                            </p>
+                            <p className="text-xs text-blue-600 mt-1">
+                              Le tarif cours est calculé au prorata de la période d&apos;entrée dans la saison.
+                              {tarifCalcule.tarifCoursAnnuel > 0 && (
+                                <> Tarif annuel : {tarifCalcule.tarifCoursAnnuel}€ → Tarif prorata : {tarifCalcule.tarifCours}€</>
+                              )}
+                            </p>
+                          </div>
+                        )}
+
                         <div className="space-y-4">
                           <h3 className="font-semibold border-b pb-2">Mode de paiement (plusieurs choix possibles)</h3>
                           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -788,15 +877,30 @@ export default function InscriptionPage() {
                               >{m}</div>
                             ))}
                           </div>
+
                           {formData.modePaiement.includes("Chèque") && (
-                            <div className="space-y-2">
-                              <Label>Nombre de versements</Label>
-                              <Select value={formData.nombreVersements} onValueChange={(v: string) => setFormData(p => ({ ...p, nombreVersements: v }))}>
-                                <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                  {["1","2","3","4","5","6","7","8","9","10"].map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-                                </SelectContent>
-                              </Select>
+                            <div className="space-y-3">
+                              <Label>Nombre de versements par chèque</Label>
+                              <div className="grid grid-cols-3 gap-3">
+                                {versementsDisponibles.map(n => (
+                                  <div
+                                    key={n}
+                                    onClick={() => setFormData(p => ({ ...p, nombreVersements: n }))}
+                                    className={formData.nombreVersements === n
+                                      ? "p-3 border-2 rounded-lg text-center cursor-pointer border-[#F9CA24] bg-amber-50 font-semibold"
+                                      : "p-3 border-2 rounded-lg text-center cursor-pointer border-gray-200 hover:border-gray-300"
+                                    }
+                                  >
+                                    {n === "1" ? "1 fois" : `${n} fois`}
+                                  </div>
+                                ))}
+                              </div>
+                              {versementsDisponibles.length === 1 && (
+                                <p className="text-xs text-gray-500">Le paiement échelonné en 3 fois est disponible à partir de 270€ de cours, en 10 fois à partir de 500€.</p>
+                              )}
+                              {versementsDisponibles.length === 2 && (
+                                <p className="text-xs text-gray-500">Le paiement en 10 fois est disponible à partir de 500€ de tarif cours.</p>
+                              )}
                             </div>
                           )}
                         </div>
@@ -806,12 +910,12 @@ export default function InscriptionPage() {
                             <h3 className="font-semibold border-b pb-2">Échéancier de paiement</h3>
                             <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                               {echeances.map((e, i) => (
-                                <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-200 last:border-0">
-                                  <div>
-                                    <span className="text-sm font-medium">{e.mois}</span>
-                                    {e.details && <span className="text-xs text-gray-500 ml-2">({e.details})</span>}
+                                <div key={i} className={`flex justify-between items-center py-2 border-b border-gray-200 last:border-0 ${e.mois.includes('Préinscription') ? 'bg-green-50 -mx-2 px-2 rounded' : ''}`}>
+                                  <div className="flex-1">
+                                    <span className={`text-sm font-medium ${e.mois.includes('Préinscription') ? 'text-green-800' : ''}`}>{e.mois}</span>
+                                    {e.details && <p className="text-xs text-gray-500">{e.details}</p>}
                                   </div>
-                                  <span className="font-semibold text-sm">{e.montant} €</span>
+                                  <span className={`font-semibold text-sm ml-4 ${e.mois.includes('Préinscription') ? 'text-green-800' : ''}`}>{e.montant} €</span>
                                 </div>
                               ))}
                               <div className="flex justify-between items-center pt-3 border-t-2 border-gray-300">
@@ -819,7 +923,58 @@ export default function InscriptionPage() {
                                 <span className="font-bold text-lg">{Math.floor(tarifCalcule.total)} €</span>
                               </div>
                             </div>
-                            <p className="text-xs text-gray-500">Les montants sont arrondis à l&apos;euro inférieur, sans centimes.</p>
+                            <p className="text-xs text-gray-500">Les montants sont arrondis à l&apos;euro inférieur, sans centimes. Le paiement échelonné n&apos;est disponible que par chèque.</p>
+
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => {
+                                const coursSelectionnesNoms = selectedCourses.map(id => {
+                                  const c = planningCours.find((x: CoursPlanning) => x.id === id);
+                                  return c ? `${c.nom} (${c.jour} ${c.horaire})` : id;
+                                });
+                                genererPDFRecapitulatif({
+                                  nomEleve: `${formData.studentLastName} ${formData.studentFirstName}`,
+                                  sexe: formData.studentGender,
+                                  dateNaissance: formData.studentBirthDate,
+                                  age: tarifCalcule.age,
+                                  adresse: formData.studentAddress,
+                                  codePostal: formData.studentPostalCode,
+                                  ville: formData.studentCity,
+                                  telephone: formData.studentPhone,
+                                  email: formData.studentEmail,
+                                  adherentPrecedent: formData.adherentPrecedent,
+                                  responsable1Nom: formData.responsable1Name,
+                                  responsable1Tel: formData.responsable1Phone,
+                                  responsable1Email: formData.responsable1Email,
+                                  responsable2Nom: formData.responsable2Name || undefined,
+                                  responsable2Tel: formData.responsable2Phone || undefined,
+                                  responsable2Email: formData.responsable2Email || undefined,
+                                  coursSelectionnes: coursSelectionnesNoms,
+                                  tarifCours: tarifCalcule.tarifCours,
+                                  tarifDanseEtudes: tarifCalcule.tarifDanseEtudes,
+                                  adhesion: tarifCalcule.adhesion,
+                                  licenceFFD: tarifCalcule.licenceFFD,
+                                  totalGeneral: Math.floor(tarifCalcule.total),
+                                  tarifReduit: formData.tarifReduit,
+                                  danseEtudes: formData.danseEtudesOption,
+                                  participationSpectacle: formData.participationSpectacle,
+                                  nombreCostumes: formData.nombreCostumes,
+                                  droitImage: formData.droitImage,
+                                  modePaiement: formData.modePaiement,
+                                  nombreVersements: formData.nombreVersements,
+                                  echeances: echeances,
+                                  avecPreinscription: preinscriptionActive,
+                                  montantPreinscription: montantPreinscription,
+                                  nomSignature: formData.signatureName || `${formData.studentLastName} ${formData.studentFirstName}`,
+                                  dateInscription: new Date().toLocaleDateString('fr-FR'),
+                                });
+                              }}
+                            >
+                              🖨️ Imprimer / Télécharger le récapitulatif PDF
+                            </Button>
                           </div>
                         )}
 
@@ -911,13 +1066,14 @@ export default function InscriptionPage() {
                                   modePaiement: formData.modePaiement,
                                   nombreVersements: formData.nombreVersements,
                                   echeances: echeances,
-                                  avecPreinscription: false,
+                                  avecPreinscription: preinscriptionActive,
+                                  montantPreinscription: montantPreinscription,
                                   nomSignature: formData.signatureName,
                                   dateInscription: new Date().toLocaleDateString('fr-FR'),
                                 });
                               }}
                             >
-                              📄 Télécharger le récapitulatif PDF
+                              �️ Imprimer / Télécharger le récapitulatif PDF
                             </Button>
                           </div>
                         </div>
@@ -951,7 +1107,18 @@ export default function InscriptionPage() {
                   </CardHeader>
                   <CardContent className="pt-6 space-y-3">
                     <div className="flex justify-between text-sm"><span>Durée/semaine</span><span className="font-medium">{tarifCalcule.totalMinutes} min</span></div>
-                    {tarifCalcule.tarifCours > 0 && <div className="flex justify-between text-sm"><span>Cours {formData.tarifReduit ? "(réduit)" : "(plein)"}</span><span className="font-medium">{tarifCalcule.tarifCours} €</span></div>}
+                    {tarifCalcule.tarifCours > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Cours {formData.tarifReduit ? "(réduit)" : "(plein)"}{prorataActif ? " prorata" : ""}</span>
+                        <span className="font-medium">{tarifCalcule.tarifCours} €</span>
+                      </div>
+                    )}
+                    {prorataActif && tarifCalcule.tarifCoursAnnuel > 0 && tarifCalcule.tarifCoursAnnuel !== tarifCalcule.tarifCours && (
+                      <div className="flex justify-between text-xs text-gray-400">
+                        <span>Tarif annuel</span>
+                        <span className="line-through">{tarifCalcule.tarifCoursAnnuel} €</span>
+                      </div>
+                    )}
                     {tarifCalcule.tarifDanseEtudes > 0 && <div className="flex justify-between text-sm"><span>Danse Études</span><span className="font-medium">{tarifCalcule.tarifDanseEtudes} €</span></div>}
                     {tarifCalcule.tarifConcours > 0 && <div className="flex justify-between text-sm"><span>Concours</span><span className="font-medium">{tarifCalcule.tarifConcours} €</span></div>}
                     <div className="border-t pt-3">
@@ -962,11 +1129,16 @@ export default function InscriptionPage() {
                     <div className="border-t pt-3">
                       <div className="flex justify-between text-lg font-bold"><span>TOTAL</span><span className="text-[#F9CA24]">{tarifCalcule.total} €</span></div>
                     </div>
+                    {preinscriptionActive && tarifCalcule.total > 0 && (
+                      <div className="bg-green-50 rounded p-2 mt-2">
+                        <p className="text-xs font-semibold text-green-700">Préinscription : {montantPreinscription} €</p>
+                      </div>
+                    )}
                     {echeances.length > 1 && (
                       <div className="border-t pt-3 mt-3">
-                        <p className="text-xs font-semibold text-gray-600 mb-2">Échéancier ({formData.nombreVersements} versements)</p>
+                        <p className="text-xs font-semibold text-gray-600 mb-2">Échéancier ({formData.nombreVersements === "1" ? "1 versement" : `${formData.nombreVersements} versements`})</p>
                         {echeances.map((e, i) => (
-                          <div key={i} className="flex justify-between text-xs text-gray-600">
+                          <div key={i} className={`flex justify-between text-xs ${e.mois.includes('Préinscription') ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
                             <span>{e.mois}</span>
                             <span className="font-medium">{e.montant} €</span>
                           </div>
