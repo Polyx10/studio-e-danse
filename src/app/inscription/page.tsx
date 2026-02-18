@@ -933,6 +933,13 @@ export default function InscriptionPage() {
                               </div>
                             </div>
                             <p className="text-xs text-gray-500">Le paiement échelonné n&apos;est disponible que par chèque.</p>
+                            {parseInt(formData.nombreVersements) > 1 && (
+                              <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                                <p className="text-xs text-red-800 font-medium">
+                                  En choisissant un paiement échelonné, vous vous engagez à honorer l&apos;intégralité de l&apos;échéancier pour l&apos;année scolaire. Aucun remboursement ne sera effectué en cas d&apos;abandon en cours d&apos;année.
+                                </p>
+                              </div>
+                            )}
 
                             {/* Encadré récapitulatif compact */}
                             <div className="bg-white border-2 border-[#F9CA24] rounded-lg p-4 space-y-3">
