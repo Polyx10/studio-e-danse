@@ -185,14 +185,13 @@ export default function InscriptionPage() {
     const tarifCoursAnnuel = totalMinutes > 0 ? getTarifForDuree(totalMinutes, isReduit) : 0;
 
     const tarifDanseEtudes = formData.danseEtudesOption === "1" ? tarifsSpeciaux.danseEtudes1 : formData.danseEtudesOption === "2" ? tarifsSpeciaux.danseEtudes2 : 0;
-    const tarifConcours = (formData.concoursOnStage ? tarifsSpeciaux.onStage : 0) + (formData.concoursClasses ? tarifsSpeciaux.classesConcours : 0);
     const adhesion = fraisFixes.adhesion;
     const licenceFFD = age < 4 ? fraisFixes.licenceFFDMoins4ans : fraisFixes.licenceFFD;
-    const totalCours = tarifCours + tarifDanseEtudes + tarifConcours;
+    const totalCours = tarifCours + tarifDanseEtudes;
     const totalFrais = adhesion + licenceFFD;
     const total = totalCours + totalFrais;
-    return { totalMinutes, tarifCours, tarifCoursAnnuel, tarifDanseEtudes, tarifConcours, adhesion, licenceFFD, totalCours, totalFrais, total, age };
-  }, [selectedCourses, formData.tarifReduit, formData.danseEtudesOption, formData.concoursOnStage, formData.concoursClasses, formData.studentBirthDate, prorataActif, periodeActuelle]);
+    return { totalMinutes, tarifCours, tarifCoursAnnuel, tarifDanseEtudes, adhesion, licenceFFD, totalCours, totalFrais, total, age };
+  }, [selectedCourses, formData.tarifReduit, formData.danseEtudesOption, formData.studentBirthDate, prorataActif, periodeActuelle]);
 
   // Options de versements disponibles selon le montant des cours
   const versementsDisponibles = useMemo(() => {
@@ -758,9 +757,10 @@ export default function InscriptionPage() {
                           </div>
                           <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                             <Label className="font-semibold mb-3 block">Concours</Label>
+                            <p className="text-xs text-orange-700 mb-3">Sélection à titre informatif uniquement. Les frais de concours seront traités séparément par le secrétariat.</p>
                             <div className="space-y-3">
-                              <div className="flex items-center gap-3"><Checkbox id="onStage" checked={formData.concoursOnStage} onCheckedChange={(c) => handleCheckboxChange("concoursOnStage", c as boolean)} /><Label htmlFor="onStage">On Stage - 100 €</Label></div>
-                              <div className="flex items-center gap-3"><Checkbox id="classes" checked={formData.concoursClasses} onCheckedChange={(c) => handleCheckboxChange("concoursClasses", c as boolean)} /><Label htmlFor="classes">Classes Concours - 200 €</Label></div>
+                              <div className="flex items-center gap-3"><Checkbox id="onStage" checked={formData.concoursOnStage} onCheckedChange={(c) => handleCheckboxChange("concoursOnStage", c as boolean)} /><Label htmlFor="onStage">On Stage</Label></div>
+                              <div className="flex items-center gap-3"><Checkbox id="classes" checked={formData.concoursClasses} onCheckedChange={(c) => handleCheckboxChange("concoursClasses", c as boolean)} /><Label htmlFor="classes">Classes Concours</Label></div>
                             </div>
                           </div>
                         </div>
@@ -1157,7 +1157,7 @@ export default function InscriptionPage() {
                       </div>
                     )}
                     {tarifCalcule.tarifDanseEtudes > 0 && <div className="flex justify-between text-sm"><span>Danse Études</span><span className="font-medium">{fmt(tarifCalcule.tarifDanseEtudes)} €</span></div>}
-                    {tarifCalcule.tarifConcours > 0 && <div className="flex justify-between text-sm"><span>Concours</span><span className="font-medium">{fmt(tarifCalcule.tarifConcours)} €</span></div>}
+                    {(formData.concoursOnStage || formData.concoursClasses) && <div className="flex justify-between text-xs text-orange-600"><span>Concours (informatif)</span><span className="font-medium">traité séparément</span></div>}
                     <div className="border-t pt-3">
                       <div className="flex justify-between text-sm"><span>Sous-total cours</span><span className="font-medium">{fmt(tarifCalcule.totalCours)} €</span></div>
                     </div>
