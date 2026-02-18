@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { Suspense, useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,14 @@ import type { PeriodeProrata, VacancesScolaires } from "@/lib/prorata-data";
 // Formater un montant avec 2 décimales (ex: 21.5 → "21,50")
 function fmt(n: number): string {
   return n.toFixed(2).replace('.', ',');
+}
+
+export default function InscriptionPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><p className="text-gray-500">Chargement...</p></div>}>
+      <InscriptionPageContent />
+    </Suspense>
+  );
 }
 
 function StepIndicator({ currentStep, isMajeur }: { currentStep: number; isMajeur: boolean }) {
@@ -68,7 +76,7 @@ function StepIndicator({ currentStep, isMajeur }: { currentStep: number; isMajeu
   );
 }
 
-export default function InscriptionPage() {
+function InscriptionPageContent() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
