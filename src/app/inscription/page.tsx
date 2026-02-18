@@ -1138,7 +1138,7 @@ export default function InscriptionPage() {
               </div>
 
               <div className="lg:col-span-1">
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto">
                   <CardHeader className="bg-[#2D3436] text-white rounded-t-lg py-4">
                     <CardTitle className="flex items-center gap-2"><Calculator className="h-5 w-5" />Estimation tarif</CardTitle>
                   </CardHeader>
