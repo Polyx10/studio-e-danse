@@ -932,7 +932,6 @@ export default function InscriptionPage() {
                                 <span className="font-bold text-lg">{fmt(tarifCalcule.total)} €</span>
                               </div>
                             </div>
-                            <p className="text-xs text-gray-500">Le paiement échelonné n&apos;est disponible que par chèque.</p>
                             {parseInt(formData.nombreVersements) > 1 && (
                               <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
                                 <p className="text-xs text-red-800 font-medium">
@@ -940,78 +939,6 @@ export default function InscriptionPage() {
                                 </p>
                               </div>
                             )}
-
-                            {/* Encadré récapitulatif compact */}
-                            <div className="bg-white border-2 border-[#F9CA24] rounded-lg p-4 space-y-3">
-                              <h4 className="font-bold text-[#2D3436] text-sm border-b border-gray-200 pb-2">Récapitulatif de votre inscription</h4>
-                              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                                <div><span className="text-gray-500">Élève :</span> <span className="font-medium">{formData.studentLastName} {formData.studentFirstName}</span></div>
-                                <div><span className="text-gray-500">Âge :</span> <span className="font-medium">{tarifCalcule.age} ans</span></div>
-                                <div><span className="text-gray-500">Cours :</span> <span className="font-medium">{selectedCourses.length} cours ({tarifCalcule.totalMinutes} min/sem)</span></div>
-                                <div><span className="text-gray-500">Tarif :</span> <span className="font-medium">{formData.tarifReduit ? "Réduit" : "Plein"}{prorataActif ? " (prorata)" : ""}</span></div>
-                                <div><span className="text-gray-500">Paiement :</span> <span className="font-medium">{formData.modePaiement.join(", ") || "Non choisi"}</span></div>
-                                <div><span className="text-gray-500">Versements :</span> <span className="font-medium">{formData.nombreVersements === "1" ? "1 fois" : `${formData.nombreVersements} fois`}</span></div>
-                              </div>
-                              <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                                <span className="font-bold text-sm">Total à régler</span>
-                                <span className="font-bold text-lg text-[#F9CA24]">{fmt(tarifCalcule.total)} €</span>
-                              </div>
-
-                              <div className="bg-amber-50 border border-amber-300 rounded p-3 mt-2">
-                                <p className="text-xs text-amber-800 font-medium mb-2">
-                                  Nous vous recommandons fortement de télécharger le récapitulatif PDF de votre inscription. Ce document vous servira de justificatif.
-                                </p>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  className="w-full bg-[#F9CA24] text-[#2D3436] hover:bg-amber-400 font-semibold"
-                                  onClick={() => {
-                                    const coursSelectionnesNoms = selectedCourses.map(id => {
-                                      const c = planningCours.find((x: CoursPlanning) => x.id === id);
-                                      return c ? `${c.nom} (${c.jour} ${c.horaire})` : id;
-                                    });
-                                    genererPDFRecapitulatif({
-                                      nomEleve: `${formData.studentLastName} ${formData.studentFirstName}`,
-                                      sexe: formData.studentGender,
-                                      dateNaissance: formData.studentBirthDate,
-                                      age: tarifCalcule.age,
-                                      adresse: formData.studentAddress,
-                                      codePostal: formData.studentPostalCode,
-                                      ville: formData.studentCity,
-                                      telephone: formData.studentPhone,
-                                      email: formData.studentEmail,
-                                      adherentPrecedent: formData.adherentPrecedent,
-                                      responsable1Nom: formData.responsable1Name,
-                                      responsable1Tel: formData.responsable1Phone,
-                                      responsable1Email: formData.responsable1Email,
-                                      responsable2Nom: formData.responsable2Name || undefined,
-                                      responsable2Tel: formData.responsable2Phone || undefined,
-                                      responsable2Email: formData.responsable2Email || undefined,
-                                      coursSelectionnes: coursSelectionnesNoms,
-                                      tarifCours: tarifCalcule.tarifCours,
-                                      tarifDanseEtudes: tarifCalcule.tarifDanseEtudes,
-                                      adhesion: tarifCalcule.adhesion,
-                                      licenceFFD: tarifCalcule.licenceFFD,
-                                      totalGeneral: tarifCalcule.total,
-                                      tarifReduit: formData.tarifReduit,
-                                      danseEtudes: formData.danseEtudesOption,
-                                      participationSpectacle: formData.participationSpectacle,
-                                      nombreCostumes: formData.nombreCostumes,
-                                      droitImage: formData.droitImage,
-                                      modePaiement: formData.modePaiement,
-                                      nombreVersements: formData.nombreVersements,
-                                      echeances: echeances,
-                                      avecPreinscription: preinscriptionEffective,
-                                      montantPreinscription: montantPreinscription,
-                                      nomSignature: formData.signatureName || `${formData.studentLastName} ${formData.studentFirstName}`,
-                                      dateInscription: new Date().toLocaleDateString('fr-FR'),
-                                    });
-                                  }}
-                                >
-                                  Télécharger le récapitulatif PDF
-                                </Button>
-                              </div>
-                            </div>
                           </div>
                         )}
 
@@ -1061,12 +988,15 @@ export default function InscriptionPage() {
                               </div>
                             </div>
                           )}
-                          <div className="pt-2">
+                          <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4 mt-2">
+                            <p className="text-sm text-amber-900 font-semibold mb-1">Téléchargement obligatoire</p>
+                            <p className="text-xs text-amber-800 mb-3">
+                              Ce récapitulatif PDF est à présenter au secrétariat de STUDIO e lors du règlement. Veuillez le télécharger et l&apos;imprimer ou le conserver sur votre téléphone.
+                            </p>
                             <Button
                               type="button"
-                              variant="outline"
                               size="sm"
-                              className="w-full"
+                              className="w-full bg-[#F9CA24] text-[#2D3436] hover:bg-amber-400 font-semibold"
                               onClick={() => {
                                 const coursSelectionnesNoms = selectedCourses.map(id => {
                                   const c = planningCours.find((x: CoursPlanning) => x.id === id);
@@ -1110,7 +1040,7 @@ export default function InscriptionPage() {
                                 });
                               }}
                             >
-                              �️ Imprimer / Télécharger le récapitulatif PDF
+                              Télécharger le récapitulatif PDF
                             </Button>
                           </div>
                         </div>
