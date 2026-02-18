@@ -378,3 +378,113 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
   const nomFichier = `Recapitulatif_Inscription_${donnees.nomEleve.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
   doc.save(nomFichier);
 }
+
+/**
+ * Génère un PDF léger contenant uniquement l'échéancier de paiement
+ * (pour l'adhérent, à l'étape 4)
+ */
+interface DonneesEcheancier {
+  nomEleve: string;
+  modePaiement: string[];
+  nombreVersements: string;
+  echeances: Echeance[];
+  totalGeneral: number;
+}
+
+export function genererPDFEcheancier(donnees: DonneesEcheancier) {
+  const doc = new jsPDF();
+
+  const mg = 20;
+  const md = 190;
+  let y = 20;
+
+  // ============ EN-TÊTE ============
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(45, 52, 54);
+  const studioText = 'STUDIO';
+  const studioWidth = doc.getTextWidth(studioText);
+  const studioX = 105 - (studioWidth + 3 + doc.getTextWidth('e')) / 2;
+  doc.text(studioText, studioX, y);
+  doc.setTextColor(230, 184, 0);
+  doc.text('e', studioX + studioWidth + 3, y);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(120, 120, 120);
+  doc.text('ÉCOLE DE DANSE', 105, y + 7, { align: 'center' });
+  y += 18;
+
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(45, 52, 54);
+  doc.text('Échéancier de paiement — Saison 2025-2026', 105, y, { align: 'center' });
+  y += 4;
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.4);
+  doc.line(mg, y, md, y);
+  y += 16;
+
+  // ============ ÉLÈVE ============
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Élève : ', mg, y);
+  doc.setFont('helvetica', 'normal');
+  doc.text(donnees.nomEleve, mg + 20, y);
+  y += 12;
+
+  // ============ ÉCHÉANCIER ============
+  y = drawSectionTitle(doc, 'ÉCHÉANCIER DE PAIEMENT', mg, y);
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  drawField(doc, 'Mode(s) de paiement : ', donnees.modePaiement.join(', '), mg + 2, y, 68);
+  y += 5;
+  drawField(doc, 'Nombre de versements : ', donnees.nombreVersements, mg + 2, y, 68);
+  y += 10;
+
+  const echeancierStartY = y;
+
+  donnees.echeances.forEach(echeance => {
+    if (echeance.mois.includes('Préinscription')) {
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 128, 0);
+      doc.text(`•   ${echeance.mois}`, mg + 6, y);
+      doc.text(`${fmtPdf(echeance.montant)} €`, mg + 100, y, { align: 'right' });
+      y += 5;
+      if (echeance.details) {
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'italic');
+        doc.text(echeance.details, mg + 12, y);
+        y += 6;
+        doc.setFontSize(9);
+      }
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('helvetica', 'normal');
+    } else {
+      doc.text(`•   ${echeance.mois}`, mg + 6, y);
+      doc.text(`${fmtPdf(echeance.montant)} €`, mg + 100, y, { align: 'right' });
+      y += 5;
+    }
+  });
+
+  // Cadre arrondi
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(mg + 2, echeancierStartY - 5, 110, y - echeancierStartY + 7, 2, 2);
+
+  // Total
+  y += 8;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('TOTAL', mg + 6, y);
+  doc.text(`${fmtPdf(donnees.totalGeneral)} €`, mg + 100, y, { align: 'right' });
+
+  // ============ PIED DE PAGE ============
+  doc.setFontSize(7);
+  doc.setTextColor(170, 170, 170);
+  doc.text(`STUDIO E — Document généré le ${new Date().toLocaleDateString('fr-FR')}`, mg, 288);
+
+  const nomFichier = `Echeancier_${donnees.nomEleve.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+  doc.save(nomFichier);
+}

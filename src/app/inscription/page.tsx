@@ -15,7 +15,7 @@ import { planningCours, professeursColors, tarifsSpeciaux, fraisFixes, getTarifF
 import { useQuotas, incrementerQuota } from "@/hooks/useQuotas";
 import { ListeAttenteModal } from "@/components/ListeAttenteModal";
 import { calculerEcheancierSansCentimes } from "@/lib/echeancier";
-import { genererPDFRecapitulatif } from "@/lib/pdf-recapitulatif";
+import { genererPDFRecapitulatif, genererPDFEcheancier } from "@/lib/pdf-recapitulatif";
 import { useConfig } from "@/hooks/useConfig";
 import { getPeriodeFromDate, calculerTarifProrata, periodesLabels, vacancesDefaut2526 } from "@/lib/prorata-data";
 import type { PeriodeProrata, VacancesScolaires } from "@/lib/prorata-data";
@@ -948,45 +948,12 @@ export default function InscriptionPage() {
                                 size="sm"
                                 className="w-full"
                                 onClick={() => {
-                                  const coursSelectionnesNoms = selectedCourses.map(id => {
-                                    const c = planningCours.find((x: CoursPlanning) => x.id === id);
-                                    return c ? `${c.nom} (${c.jour} ${c.horaire})` : id;
-                                  });
-                                  genererPDFRecapitulatif({
+                                  genererPDFEcheancier({
                                     nomEleve: `${formData.studentLastName} ${formData.studentFirstName}`,
-                                    sexe: formData.studentGender,
-                                    dateNaissance: formData.studentBirthDate,
-                                    age: tarifCalcule.age,
-                                    adresse: formData.studentAddress,
-                                    codePostal: formData.studentPostalCode,
-                                    ville: formData.studentCity,
-                                    telephone: formData.studentPhone,
-                                    email: formData.studentEmail,
-                                    adherentPrecedent: formData.adherentPrecedent,
-                                    responsable1Nom: formData.responsable1Name,
-                                    responsable1Tel: formData.responsable1Phone,
-                                    responsable1Email: formData.responsable1Email,
-                                    responsable2Nom: formData.responsable2Name || undefined,
-                                    responsable2Tel: formData.responsable2Phone || undefined,
-                                    responsable2Email: formData.responsable2Email || undefined,
-                                    coursSelectionnes: coursSelectionnesNoms,
-                                    tarifCours: tarifCalcule.tarifCours,
-                                    tarifDanseEtudes: tarifCalcule.tarifDanseEtudes,
-                                    adhesion: tarifCalcule.adhesion,
-                                    licenceFFD: tarifCalcule.licenceFFD,
-                                    totalGeneral: tarifCalcule.total,
-                                    tarifReduit: formData.tarifReduit,
-                                    danseEtudes: formData.danseEtudesOption,
-                                    participationSpectacle: formData.participationSpectacle,
-                                    nombreCostumes: formData.nombreCostumes,
-                                    droitImage: formData.droitImage,
                                     modePaiement: formData.modePaiement,
                                     nombreVersements: formData.nombreVersements,
                                     echeances: echeances,
-                                    avecPreinscription: preinscriptionEffective,
-                                    montantPreinscription: montantPreinscription,
-                                    nomSignature: formData.signatureName || `${formData.studentLastName} ${formData.studentFirstName}`,
-                                    dateInscription: new Date().toLocaleDateString('fr-FR'),
+                                    totalGeneral: tarifCalcule.total,
                                   });
                                 }}
                               >
