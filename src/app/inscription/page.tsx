@@ -886,31 +886,32 @@ export default function InscriptionPage() {
                             ))}
                           </div>
 
-                          {formData.modePaiement.includes("Chèque") && (
-                            <div className="space-y-3">
-                              <Label>Nombre de versements par chèque</Label>
-                              <div className="grid grid-cols-3 gap-3">
-                                {versementsDisponibles.map(n => (
-                                  <div
-                                    key={n}
-                                    onClick={() => setFormData(p => ({ ...p, nombreVersements: n }))}
-                                    className={formData.nombreVersements === n
-                                      ? "p-3 border-2 rounded-lg text-center cursor-pointer border-[#F9CA24] bg-amber-50 font-semibold"
-                                      : "p-3 border-2 rounded-lg text-center cursor-pointer border-gray-200 hover:border-gray-300"
-                                    }
-                                  >
-                                    {n === "1" ? "1 fois" : `${n} fois`}
-                                  </div>
-                                ))}
-                              </div>
-                              {versementsDisponibles.length === 1 && (
-                                <p className="text-xs text-gray-500">Le paiement échelonné en 3 fois est disponible à partir de 270€ de cours, en 10 fois à partir de 500€.</p>
-                              )}
-                              {versementsDisponibles.length === 2 && (
-                                <p className="text-xs text-gray-500">Le paiement en 10 fois est disponible à partir de 500€ de tarif cours.</p>
-                              )}
+                          <div className="space-y-3">
+                            <Label>Nombre de versements</Label>
+                            <div className="grid grid-cols-3 gap-3">
+                              {versementsDisponibles.map(n => (
+                                <div
+                                  key={n}
+                                  onClick={() => setFormData(p => ({ ...p, nombreVersements: n }))}
+                                  className={formData.nombreVersements === n
+                                    ? "p-3 border-2 rounded-lg text-center cursor-pointer border-[#F9CA24] bg-amber-50 font-semibold"
+                                    : "p-3 border-2 rounded-lg text-center cursor-pointer border-gray-200 hover:border-gray-300"
+                                  }
+                                >
+                                  {n === "1" ? "1 fois" : `${n} fois`}
+                                </div>
+                              ))}
                             </div>
-                          )}
+                            {versementsDisponibles.length === 1 && (
+                              <p className="text-xs text-gray-500">Le paiement échelonné en 3 fois est disponible à partir de 270,00 € de cours, en 10 fois à partir de 500,00 €.</p>
+                            )}
+                            {versementsDisponibles.length === 2 && (
+                              <p className="text-xs text-gray-500">Le paiement en 10 fois est disponible à partir de 500,00 € de tarif cours.</p>
+                            )}
+                            {!formData.modePaiement.includes("Chèque") && parseInt(formData.nombreVersements) > 1 && (
+                              <p className="text-xs text-amber-700 font-medium">Le paiement échelonné n&apos;est disponible que par chèque.</p>
+                            )}
+                          </div>
                         </div>
 
                         {echeances.length > 0 && tarifCalcule.total > 0 && (
