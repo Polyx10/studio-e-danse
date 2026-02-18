@@ -936,7 +936,7 @@ export default function InscriptionPage() {
                             {parseInt(formData.nombreVersements) > 1 && (
                               <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
                                 <p className="text-xs text-red-800 font-medium">
-                                  En choisissant un paiement échelonné, vous vous engagez à honorer l&apos;intégralité de l&apos;échéancier pour l&apos;année scolaire. Aucun remboursement ne sera effectué en cas d&apos;abandon en cours d&apos;année.
+                                  En choisissant un paiement échelonné, vous vous engagez à honorer l&apos;intégralité de l&apos;échéancier pour l&apos;année scolaire. Aucun remboursement ne sera effectué en cas d&apos;abandon en cours d&apos;année, sauf en cas de mutation ou pour raisons de santé sur présentation d&apos;un certificat médical, conformément au règlement intérieur de l&apos;école.
                                 </p>
                               </div>
                             )}
