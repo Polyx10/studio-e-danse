@@ -59,6 +59,38 @@ export default function TarifsPage() {
         </div>
       </section>
 
+      {/* Téléchargement Règlement Intérieur */}
+      <section className="py-8 bg-blue-50 border-b border-blue-200">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto">
+            <Card className="border-2 border-blue-300">
+              <CardHeader className="bg-blue-100">
+                <CardTitle className="flex items-center gap-3 text-blue-900">
+                  <Info className="h-6 w-6" />
+                  Règlement Intérieur 2025-2026
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <p className="text-gray-700 mb-4">
+                  Avant de vous inscrire, nous vous invitons à prendre connaissance de notre règlement intérieur. 
+                  Ce document est obligatoire et doit être accepté lors de votre inscription.
+                </p>
+                <a 
+                  href="/documents/reglement-interieur.pdf" 
+                  download
+                  className="inline-block"
+                >
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                    <Download className="h-5 w-5 mr-2" />
+                    Télécharger le règlement intérieur (PDF)
+                  </Button>
+                </a>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">

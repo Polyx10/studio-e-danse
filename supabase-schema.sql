@@ -10,6 +10,8 @@ CREATE TABLE inscriptions (
   -- Informations élève
   adherent_precedent BOOLEAN DEFAULT false,
   student_name TEXT NOT NULL,
+  student_last_name TEXT,
+  student_first_name TEXT,
   student_gender TEXT NOT NULL,
   student_birth_date TEXT NOT NULL,
   student_address TEXT,

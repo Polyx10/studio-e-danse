@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,9 +11,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Info, AlertCircle, Calculator, Users } from "lucide-react";
-import { planningCours, professeursColors, tarifsSpeciaux, fraisFixes, getTarifForDuree, calculateAge, CoursPlanning } from "@/lib/planning-data";
+import { planningCours, professeursColors, tarifsSpeciaux, fraisFixes, getTarifForDuree, calculateAge, CoursPlanning, getCoursRecommandes } from "@/lib/planning-data";
 import { useQuotas, incrementerQuota } from "@/hooks/useQuotas";
 import { ListeAttenteModal } from "@/components/ListeAttenteModal";
+import { calculerEcheancierSansCentimes } from "@/lib/echeancier";
+import { genererPDFRecapitulatif } from "@/lib/pdf-recapitulatif";
 
 function StepIndicator({ currentStep, isMajeur }: { currentStep: number; isMajeur: boolean }) {
   const steps = isMajeur
@@ -58,11 +61,20 @@ function StepIndicator({ currentStep, isMajeur }: { currentStep: number; isMajeu
 }
 
 export default function InscriptionPage() {
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [coursListeAttente, setCoursListeAttente] = useState<CoursPlanning | null>(null);
+  
+  // Réinitialiser le formulaire à l'étape 1 quand on clique sur "S'inscrire" dans le header
+  useEffect(() => {
+    if (searchParams.get('reset') === '1') {
+      setStep(1);
+      window.history.replaceState({}, '', '/inscription');
+    }
+  }, [searchParams]);
   
   // Charger les quotas pour tous les cours
   const coursIds = planningCours.map(c => c.id);
@@ -70,7 +82,8 @@ export default function InscriptionPage() {
   
   const [formData, setFormData] = useState({
     adherentPrecedent: false,
-    studentName: "",
+    studentLastName: "",
+    studentFirstName: "",
     studentGender: "F",
     studentBirthDate: "",
     studentAddress: "",
@@ -110,6 +123,14 @@ export default function InscriptionPage() {
     setFormData(prev => ({ ...prev, [name]: checked }));
   };
 
+  // Auto-forcer le certificat médical si concours ou Danse Études sélectionné
+  const requiresCertificat = formData.concoursOnStage || formData.concoursClasses || formData.danseEtudesOption !== "0";
+  useEffect(() => {
+    if (requiresCertificat && formData.typeCours !== "danse-etudes") {
+      setFormData(prev => ({ ...prev, typeCours: "danse-etudes" }));
+    }
+  }, [requiresCertificat]);
+
   const toggleCourse = (courseId: string) => {
     setSelectedCourses(prev => prev.includes(courseId) ? prev.filter(id => id !== courseId) : [...prev, courseId]);
   };
@@ -130,6 +151,18 @@ export default function InscriptionPage() {
     return { totalMinutes, tarifCours, tarifDanseEtudes, tarifConcours, adhesion, licenceFFD, totalCours, totalFrais, total, age };
   }, [selectedCourses, formData.tarifReduit, formData.danseEtudesOption, formData.concoursOnStage, formData.concoursClasses, formData.studentBirthDate]);
 
+  const echeances = useMemo(() => {
+    if (tarifCalcule.total <= 0) return [];
+    const nbVersements = parseInt(formData.nombreVersements) || 1;
+    return calculerEcheancierSansCentimes(
+      tarifCalcule.total,
+      nbVersements,
+      false,
+      tarifCalcule.adhesion,
+      tarifCalcule.licenceFFD
+    );
+  }, [tarifCalcule.total, tarifCalcule.adhesion, tarifCalcule.licenceFFD, formData.nombreVersements]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -137,7 +170,9 @@ export default function InscriptionPage() {
     try {
       const inscriptionData = {
         adherent_precedent: formData.adherentPrecedent,
-        student_name: formData.studentName,
+        student_last_name: formData.studentLastName,
+        student_first_name: formData.studentFirstName,
+        student_name: `${formData.studentLastName} ${formData.studentFirstName}`,
         student_gender: formData.studentGender,
         student_birth_date: formData.studentBirthDate,
         student_address: formData.studentAddress || null,
@@ -254,7 +289,8 @@ export default function InscriptionPage() {
 
   const isMajeur = tarifCalcule.age >= 18;
   const canProceedStep1 = Boolean(
-    formData.studentName && 
+    formData.studentLastName && 
+    formData.studentFirstName && 
     formData.studentBirthDate &&
     (!isMajeur || (formData.studentAddress && formData.studentPostalCode && formData.studentCity && formData.studentPhone && formData.studentEmail))
   );
@@ -341,8 +377,12 @@ export default function InscriptionPage() {
                         </div>
                         <div className="grid sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor="studentName">Nom & Prénom *</Label>
-                            <Input id="studentName" name="studentName" value={formData.studentName} onChange={handleInputChange} required />
+                            <Label htmlFor="studentLastName">Nom *</Label>
+                            <Input id="studentLastName" name="studentLastName" value={formData.studentLastName} onChange={handleInputChange} required />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="studentFirstName">Prénom *</Label>
+                            <Input id="studentFirstName" name="studentFirstName" value={formData.studentFirstName} onChange={handleInputChange} required />
                           </div>
                           <div className="space-y-2">
                             <Label>Sexe</Label>
@@ -559,74 +599,87 @@ export default function InscriptionPage() {
                             <div key={jour} className="border rounded-lg overflow-hidden">
                               <div className="bg-[#2D3436] text-white px-4 py-2 font-semibold">{jour}</div>
                               <div className="p-2 grid gap-2">
-                                {cours.map((c: CoursPlanning) => {
-                                  const isSelected = selectedCourses.includes(c.id);
-                                  const colorClass = professeursColors[c.professeur] || "bg-gray-100";
-                                  const isSpecial = c.isDanseEtudes || c.isConcours;
-                                  const quota = quotas[c.id];
-                                  const isComplet = quota && !quota.disponible && !isSpecial;
-                                  const placesRestantes = quota?.places_restantes || 0;
+                                {(() => {
+                                  // La date de naissance est obligatoire pour accéder à cette étape
+                                  const recommandes = getCoursRecommandes(formData.studentBirthDate);
                                   
-                                  let className = "p-3 rounded-lg border-2 transition-all " + colorClass;
-                                  if (isSpecial) {
-                                    className = "p-3 rounded-lg border-2 opacity-50 cursor-not-allowed bg-gray-100";
-                                  } else if (isComplet) {
-                                    className = "p-3 rounded-lg border-2 bg-gray-100 border-gray-300";
-                                  } else if (isSelected) {
-                                    className = "p-3 rounded-lg border-2 cursor-pointer transition-all border-[#F9CA24] ring-2 ring-[#F9CA24] " + colorClass;
-                                  } else {
-                                    className = "p-3 rounded-lg border-2 cursor-pointer transition-all hover:border-gray-400 " + colorClass;
-                                  }
-                                  
-                                  return (
-                                    <div key={c.id} className={className}>
-                                      <div 
-                                        onClick={() => !isSpecial && !isComplet && toggleCourse(c.id)} 
-                                        className={!isSpecial && !isComplet ? "cursor-pointer" : ""}
-                                      >
-                                        <div className="flex justify-between items-start mb-2">
-                                          <div className="flex-1">
-                                            <p className="font-semibold">{c.nom}</p>
-                                            <p className="text-sm">{c.horaire} ({c.duree} min)</p>
-                                          </div>
-                                          <div className="flex items-center gap-2">
-                                            {!isSpecial && !isComplet && quota && placesRestantes <= 5 && placesRestantes > 0 && (
-                                              <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-300">
-                                                <Users className="h-3 w-3 mr-1" />
-                                                {placesRestantes} places
-                                              </Badge>
-                                            )}
-                                            {isComplet && (
-                                              <Badge variant="destructive" className="text-xs">Complet en ligne</Badge>
-                                            )}
-                                            {!isSpecial && !isComplet && (
-                                              <div onClick={(e) => e.stopPropagation()}>
-                                                <Checkbox checked={isSelected} onCheckedChange={() => toggleCourse(c.id)} className="mt-1" />
-                                              </div>
-                                            )}
-                                            {isSpecial && <span className="text-xs bg-gray-200 px-2 py-1 rounded">Voir options</span>}
+                                  return cours.map((c: CoursPlanning) => {
+                                    const isSelected = selectedCourses.includes(c.id);
+                                    const colorClass = professeursColors[c.professeur] || "bg-gray-100";
+                                    const isSpecial = c.isDanseEtudes || c.isConcours;
+                                    const quota = quotas[c.id];
+                                    const isComplet = quota && !quota.disponible && !isSpecial;
+                                    const placesRestantes = quota?.places_restantes || 0;
+                                    const isRecommande = recommandes.includes(c.id);
+                                    const isHorsNiveau = !isRecommande && !isSpecial;
+                                    const isSelectable = !isSpecial && !isComplet && !isHorsNiveau;
+                                    
+                                    let className = "p-3 rounded-lg border-2 transition-all ";
+                                    if (isSpecial) {
+                                      className += "opacity-50 cursor-not-allowed bg-gray-100";
+                                    } else if (isComplet && isHorsNiveau) {
+                                      className += "bg-gray-100 border-gray-300 opacity-40";
+                                    } else if (isHorsNiveau) {
+                                      className += "opacity-40 cursor-not-allowed bg-gray-100 border-gray-200";
+                                    } else if (isComplet) {
+                                      className += "bg-gray-100 border-gray-300 " + colorClass;
+                                    } else if (isSelected) {
+                                      className += "cursor-pointer border-[#F9CA24] ring-2 ring-[#F9CA24] " + colorClass;
+                                    } else {
+                                      className += "cursor-pointer hover:border-gray-400 " + colorClass;
+                                    }
+                                    
+                                    return (
+                                      <div key={c.id} className={className}>
+                                        <div 
+                                          onClick={() => isSelectable && toggleCourse(c.id)} 
+                                          className={isSelectable ? "cursor-pointer" : ""}
+                                        >
+                                          <div className="flex justify-between items-start mb-2">
+                                            <div className="flex-1">
+                                              <p className="font-semibold">{c.nom}</p>
+                                              <p className="text-sm">{c.horaire} ({c.duree} min)</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              {isSelectable && quota && placesRestantes <= 5 && placesRestantes > 0 && (
+                                                <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-800 border-amber-300">
+                                                  <Users className="h-3 w-3 mr-1" />
+                                                  {placesRestantes} places
+                                                </Badge>
+                                              )}
+                                              {isComplet && (
+                                                <Badge variant="destructive" className="text-xs">Complet en ligne</Badge>
+                                              )}
+                                              {isSelectable && (
+                                                <div onClick={(e) => e.stopPropagation()}>
+                                                  <Checkbox checked={isSelected} onCheckedChange={() => toggleCourse(c.id)} className="mt-1" />
+                                                </div>
+                                              )}
+                                              {isSpecial && <span className="text-xs bg-gray-200 px-2 py-1 rounded">Voir options</span>}
+                                            </div>
                                           </div>
                                         </div>
+                                        
+                                        {isComplet && !isHorsNiveau && (
+                                          <div className="mt-3 pt-3 border-t border-gray-200">
+                                            <p className="text-sm text-gray-600 mb-2">
+                                              Des places peuvent être disponibles sur place.
+                                            </p>
+                                            <Button
+                                              type="button"
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => setCoursListeAttente(c)}
+                                              className="w-full text-xs"
+                                            >
+                                              S&apos;inscrire sur la liste d&apos;attente
+                                            </Button>
+                                          </div>
+                                        )}
                                       </div>
-                                      
-                                      {isComplet && (
-                                        <div className="mt-3 pt-3 border-t border-gray-200">
-                                          <p className="text-sm text-gray-600 mb-2">
-                                            Des places peuvent être disponibles sur place.
-                                          </p>
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => setCoursListeAttente(c)}
-                                            className="w-full text-xs"
-                                          >
-                                            S&apos;inscrire sur la liste d&apos;attente
-                                          </Button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
+                                    );
+                                  });
+                                })()}
                               </div>
                             </div>
                           ))}
@@ -704,8 +757,15 @@ export default function InscriptionPage() {
 
                         <div className="space-y-4">
                           <h3 className="font-semibold border-b pb-2">Certificat médical</h3>
-                          <RadioGroup value={formData.typeCours} onValueChange={(v: string) => setFormData(p => ({ ...p, typeCours: v }))} className="space-y-3">
-                            <div className="flex items-start space-x-2"><RadioGroupItem value="loisirs" id="cm-l" className="mt-1" /><Label htmlFor="cm-l" className="text-sm"><strong>Loisirs</strong> : aucun certificat nécessaire.</Label></div>
+                          {requiresCertificat && (
+                            <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                              <p className="text-sm text-red-800">
+                                <strong>Obligatoire :</strong> Vous avez sélectionné {formData.concoursOnStage || formData.concoursClasses ? 'un concours' : 'Danse Études'}. Un certificat médical de moins de 6 mois est requis.
+                              </p>
+                            </div>
+                          )}
+                          <RadioGroup value={formData.typeCours} onValueChange={(v: string) => { if (!requiresCertificat) setFormData(p => ({ ...p, typeCours: v })); }} className="space-y-3">
+                            <div className={`flex items-start space-x-2 ${requiresCertificat ? 'opacity-40 cursor-not-allowed' : ''}`}><RadioGroupItem value="loisirs" id="cm-l" className="mt-1" disabled={requiresCertificat} /><Label htmlFor="cm-l" className="text-sm"><strong>Loisirs</strong> : aucun certificat nécessaire.</Label></div>
                             <div className="flex items-start space-x-2"><RadioGroupItem value="danse-etudes" id="cm-de" className="mt-1" /><Label htmlFor="cm-de" className="text-sm"><strong>Danse Études / Concours</strong> : certificat de moins de 6 mois requis.</Label></div>
                           </RadioGroup>
                         </div>
@@ -741,6 +801,28 @@ export default function InscriptionPage() {
                           )}
                         </div>
 
+                        {echeances.length > 0 && tarifCalcule.total > 0 && (
+                          <div className="space-y-4">
+                            <h3 className="font-semibold border-b pb-2">Échéancier de paiement</h3>
+                            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                              {echeances.map((e, i) => (
+                                <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-200 last:border-0">
+                                  <div>
+                                    <span className="text-sm font-medium">{e.mois}</span>
+                                    {e.details && <span className="text-xs text-gray-500 ml-2">({e.details})</span>}
+                                  </div>
+                                  <span className="font-semibold text-sm">{e.montant} €</span>
+                                </div>
+                              ))}
+                              <div className="flex justify-between items-center pt-3 border-t-2 border-gray-300">
+                                <span className="font-bold">Total</span>
+                                <span className="font-bold text-lg">{Math.floor(tarifCalcule.total)} €</span>
+                              </div>
+                            </div>
+                            <p className="text-xs text-gray-500">Les montants sont arrondis à l&apos;euro inférieur, sans centimes.</p>
+                          </div>
+                        )}
+
                         <div className="flex justify-between pt-4">
                           <Button type="button" variant="outline" onClick={() => setStep(3)}>Retour</Button>
                           <Button type="button" onClick={() => setStep(5)} className="bg-[#2D3436] hover:bg-[#3d4446]">Continuer</Button>
@@ -756,7 +838,7 @@ export default function InscriptionPage() {
                         <div className="bg-gray-50 rounded-lg p-4 space-y-4">
                           <h4 className="font-semibold">Récapitulatif</h4>
                           <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                            <div><p className="text-gray-500">Élève</p><p className="font-medium">{formData.studentName}</p></div>
+                            <div><p className="text-gray-500">Élève</p><p className="font-medium">{formData.studentLastName} {formData.studentFirstName}</p></div>
                             <div><p className="text-gray-500">Âge</p><p className="font-medium">{tarifCalcule.age} ans</p></div>
                             <div><p className="text-gray-500">Responsable</p><p className="font-medium">{formData.responsable1Name}</p></div>
                             <div><p className="text-gray-500">Contact</p><p className="font-medium">{formData.responsable1Email}</p></div>
@@ -769,6 +851,74 @@ export default function InscriptionPage() {
                                 return c ? <span key={id} className="bg-[#2D3436] text-white px-3 py-1 rounded-full text-sm">{c.nom} ({c.jour})</span> : null;
                               })}
                             </div>
+                          </div>
+                          {echeances.length > 0 && (
+                            <div>
+                              <p className="text-gray-500 mb-2">Échéancier ({formData.nombreVersements} versement{parseInt(formData.nombreVersements) > 1 ? 's' : ''})</p>
+                              <div className="space-y-1">
+                                {echeances.map((e, i) => (
+                                  <div key={i} className="flex justify-between text-sm">
+                                    <span>{e.mois}</span>
+                                    <span className="font-medium">{e.montant} €</span>
+                                  </div>
+                                ))}
+                                <div className="flex justify-between text-sm font-bold border-t pt-1 mt-1">
+                                  <span>Total</span>
+                                  <span>{Math.floor(tarifCalcule.total)} €</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          <div className="pt-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => {
+                                const coursSelectionnesNoms = selectedCourses.map(id => {
+                                  const c = planningCours.find((x: CoursPlanning) => x.id === id);
+                                  return c ? `${c.nom} (${c.jour} ${c.horaire})` : id;
+                                });
+                                genererPDFRecapitulatif({
+                                  nomEleve: `${formData.studentLastName} ${formData.studentFirstName}`,
+                                  sexe: formData.studentGender,
+                                  dateNaissance: formData.studentBirthDate,
+                                  age: tarifCalcule.age,
+                                  adresse: formData.studentAddress,
+                                  codePostal: formData.studentPostalCode,
+                                  ville: formData.studentCity,
+                                  telephone: formData.studentPhone,
+                                  email: formData.studentEmail,
+                                  adherentPrecedent: formData.adherentPrecedent,
+                                  responsable1Nom: formData.responsable1Name,
+                                  responsable1Tel: formData.responsable1Phone,
+                                  responsable1Email: formData.responsable1Email,
+                                  responsable2Nom: formData.responsable2Name || undefined,
+                                  responsable2Tel: formData.responsable2Phone || undefined,
+                                  responsable2Email: formData.responsable2Email || undefined,
+                                  coursSelectionnes: coursSelectionnesNoms,
+                                  tarifCours: tarifCalcule.tarifCours,
+                                  tarifDanseEtudes: tarifCalcule.tarifDanseEtudes,
+                                  adhesion: tarifCalcule.adhesion,
+                                  licenceFFD: tarifCalcule.licenceFFD,
+                                  totalGeneral: Math.floor(tarifCalcule.total),
+                                  tarifReduit: formData.tarifReduit,
+                                  danseEtudes: formData.danseEtudesOption,
+                                  participationSpectacle: formData.participationSpectacle,
+                                  nombreCostumes: formData.nombreCostumes,
+                                  droitImage: formData.droitImage,
+                                  modePaiement: formData.modePaiement,
+                                  nombreVersements: formData.nombreVersements,
+                                  echeances: echeances,
+                                  avecPreinscription: false,
+                                  nomSignature: formData.signatureName,
+                                  dateInscription: new Date().toLocaleDateString('fr-FR'),
+                                });
+                              }}
+                            >
+                              📄 Télécharger le récapitulatif PDF
+                            </Button>
                           </div>
                         </div>
 
@@ -812,6 +962,17 @@ export default function InscriptionPage() {
                     <div className="border-t pt-3">
                       <div className="flex justify-between text-lg font-bold"><span>TOTAL</span><span className="text-[#F9CA24]">{tarifCalcule.total} €</span></div>
                     </div>
+                    {echeances.length > 1 && (
+                      <div className="border-t pt-3 mt-3">
+                        <p className="text-xs font-semibold text-gray-600 mb-2">Échéancier ({formData.nombreVersements} versements)</p>
+                        {echeances.map((e, i) => (
+                          <div key={i} className="flex justify-between text-xs text-gray-600">
+                            <span>{e.mois}</span>
+                            <span className="font-medium">{e.montant} €</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <p className="text-xs text-gray-500 mt-4">* Estimation indicative. Le montant définitif sera confirmé au secrétariat.</p>
                   </CardContent>
                 </Card>

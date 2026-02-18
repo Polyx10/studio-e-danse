@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight } from "lucide-react";
+import { sql } from '@/lib/neon';
+
+export const revalidate = 60;
 
 const courses = [
   {
@@ -37,30 +40,22 @@ const courses = [
   },
 ];
 
-const teachers = [
-  {
-    name: "Audrey",
-    specialty: "Jazz",
-    description: "Professeure chorégraphe titulaire du DE option Jazz depuis 2011",
-  },
-  {
-    name: "Jeanette Moreno Silva",
-    specialty: "Classique & Contemporain",
-    description: "Diplômée de l'École Nationale de Ballet de Cuba",
-  },
-  {
-    name: "Aymeric",
-    specialty: "Classique",
-    description: "Ancien danseur du Conservatoire National Supérieur de Lyon",
-  },
-  {
-    name: "Romane",
-    specialty: "Jazz",
-    description: "Formée à l'école Sandie Trévien puis Studio e",
-  },
-];
+async function getTeachers() {
+  try {
+    const fiches = await sql`
+      SELECT id, titre, texte, photos, categorie
+      FROM pages_content
+      WHERE page = 'equipe' AND published = true
+      ORDER BY ordre ASC, created_at ASC
+    `;
+    return fiches as any[];
+  } catch {
+    return [];
+  }
+}
 
-export default function Home() {
+export default async function Home() {
+  const teachers = await getTeachers();
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -167,23 +162,32 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Notre Équipe</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Des professeurs diplômés et passionnés, avec une expérience 
-              nationale et internationale.
+            <p className="text-xl text-gray-600">
+              Des professeurs diplômés et passionnés, avec une expérience nationale et internationale.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className={`grid grid-cols-1 md:grid-cols-2 ${teachers.length >= 5 ? 'lg:grid-cols-5' : teachers.length === 4 ? 'lg:grid-cols-4' : teachers.length === 3 ? 'lg:grid-cols-3' : ''} gap-8`}>
             {teachers.map((teacher) => (
-              <div key={teacher.name} className="text-center group">
-                <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-200 to-amber-300 flex items-center justify-center text-4xl font-bold text-[#2D3436] group-hover:scale-105 transition-transform">
-                  {teacher.name.charAt(0)}
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">{teacher.name}</h3>
-                <Badge className="my-2 bg-amber-100 text-[#2D3436] hover:bg-amber-200">
-                  {teacher.specialty}
-                </Badge>
-                <p className="text-gray-600 text-sm">{teacher.description}</p>
+              <div key={teacher.id} className="text-center group">
+                {teacher.photos && teacher.photos.length > 0 ? (
+                  <div className="w-32 h-32 mx-auto mb-4 rounded-full overflow-hidden group-hover:scale-105 transition-transform">
+                    <img src={teacher.photos[0]} alt={teacher.titre} className="w-full h-full object-cover object-top" />
+                  </div>
+                ) : (
+                  <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-200 to-amber-300 flex items-center justify-center text-4xl font-bold text-[#2D3436] group-hover:scale-105 transition-transform">
+                    {teacher.titre.charAt(0)}
+                  </div>
+                )}
+                <h3 className="text-xl font-bold text-gray-900">{teacher.titre}</h3>
+                {teacher.categorie && (
+                  <Badge className="my-2 bg-amber-100 text-[#2D3436] hover:bg-amber-200">
+                    {teacher.categorie}
+                  </Badge>
+                )}
+                {teacher.texte && (
+                  <p className="text-gray-600 text-sm line-clamp-2">{teacher.texte}</p>
+                )}
               </div>
             ))}
           </div>

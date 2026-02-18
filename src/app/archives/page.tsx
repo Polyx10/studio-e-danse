@@ -1,9 +1,9 @@
 import { sql } from '@/lib/neon';
-import { ActualitesClient } from './ActualitesClient';
+import { ArchivesClient } from './ArchivesClient';
 
 export const metadata = {
-  title: "Actualités | Studio e - École de danse à Brest",
-  description: "Suivez toute l'actualité de Studio e : événements, spectacles, concours, stages et informations importantes.",
+  title: "Archives | Studio e - École de danse à Brest",
+  description: "Retrouvez les archives de Studio e : anciens événements, spectacles, concours et moments forts de l'école.",
 };
 
 export const revalidate = 60;
@@ -13,7 +13,7 @@ async function getFiches() {
     const fiches = await sql`
       SELECT id, titre, texte, photos, categorie, highlight, show_date, created_at
       FROM pages_content
-      WHERE page = 'actualites' AND published = true
+      WHERE page = 'archives' AND published = true
       ORDER BY ordre ASC, created_at DESC
     `;
     return fiches as any[];
@@ -22,7 +22,7 @@ async function getFiches() {
   }
 }
 
-export default async function ActualitesPage() {
+export default async function ArchivesPage() {
   const fiches = await getFiches();
-  return <ActualitesClient fiches={fiches as any} />;
+  return <ArchivesClient fiches={fiches as any} />;
 }

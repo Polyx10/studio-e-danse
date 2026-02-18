@@ -27,10 +27,21 @@ export async function POST(request: NextRequest) {
     `;
 
     if (quotaCheck.length === 0) {
-      return NextResponse.json(
-        { error: 'Cours non trouvé' },
-        { status: 404 }
-      );
+      // Créer automatiquement une entrée de quota pour ce cours
+      await sql`
+        INSERT INTO cours_quotas (cours_id, quota_en_ligne, inscriptions_en_ligne)
+        VALUES (${coursId}, 30, 1)
+        ON CONFLICT (cours_id) DO NOTHING
+      `;
+      return NextResponse.json({
+        success: true,
+        quota: {
+          disponible: true,
+          places_restantes: 29,
+          quota_total: 30,
+          inscriptions: 1
+        }
+      });
     }
 
     const quota = quotaCheck[0];

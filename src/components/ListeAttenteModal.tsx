@@ -66,6 +66,19 @@ export function ListeAttenteModal({ cours, open, onClose }: ListeAttenteModalPro
           </DialogDescription>
         </DialogHeader>
 
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <p className="text-sm text-blue-900 font-medium mb-2">
+            💡 Des places peuvent être disponibles à l&apos;école
+          </p>
+          <p className="text-sm text-blue-800">
+            Nous vous recommandons de nous appeler au{' '}
+            <a href="tel:0767920317" className="font-semibold underline hover:text-blue-600">
+              07 67 92 03 17
+            </a>
+            {' '}car certaines places ne sont réservables qu&apos;à l&apos;école.
+          </p>
+        </div>
+
         {success ? (
           <div className="py-6 text-center">
             <div className="mb-4 text-green-600 text-5xl">✓</div>

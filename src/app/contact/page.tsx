@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,25 @@ export default function ContactPage() {
     subject: "",
     message: "",
   });
+  
+  const [horaires, setHoraires] = useState<Record<string, string>>({
+    mardi: '15h00 - 19h30',
+    mercredi: '10h15 - 12h30 / 13h00 - 19h00',
+    jeudi: '15h00 - 19h30',
+    vendredi: '15h15 - 19h30',
+    samedi: '09h45 - 12h30 / 13h00 - 16h00',
+  });
+
+  useEffect(() => {
+    fetch('/api/horaires-secretariat')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data && data.horaires) {
+          setHoraires(data.horaires);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -34,9 +53,26 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+      } else {
+        const error = await response.json();
+        alert(`Erreur lors de l'envoi du message : ${error.error || 'Erreur inconnue'}`);
+      }
+    } catch (error) {
+      console.error('Erreur envoi formulaire:', error);
+      alert('Erreur lors de l\'envoi du message. Veuillez réessayer.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -119,10 +155,17 @@ export default function ContactPage() {
                       <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
                       <a 
                         href="mailto:studioedanse@gmail.com"
-                        className="text-[#F9CA24] hover:text-rose-700"
+                        className="text-[#F9CA24] hover:text-rose-700 block"
                       >
                         studioedanse@gmail.com
                       </a>
+                      <a 
+                        href="mailto:studioedansesecretariat@gmail.com"
+                        className="text-[#F9CA24] hover:text-rose-700 block mt-1"
+                      >
+                        studioedansesecretariat@gmail.com
+                      </a>
+                      <span className="text-sm text-gray-500 block mt-1">(secrétariat)</span>
                     </div>
                   </div>
                 </CardContent>
@@ -137,26 +180,48 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-semibold text-gray-900 mb-2">Horaires du secrétariat</h3>
                       <ul className="text-sm text-gray-600 space-y-1">
-                        <li className="flex justify-between gap-4">
-                          <span>Mardi</span>
-                          <span>15h00 - 19h30</span>
-                        </li>
-                        <li className="flex justify-between gap-4">
-                          <span>Mercredi</span>
-                          <span>10h15 - 19h00</span>
-                        </li>
-                        <li className="flex justify-between gap-4">
-                          <span>Jeudi</span>
-                          <span>15h00 - 19h30</span>
-                        </li>
-                        <li className="flex justify-between gap-4">
-                          <span>Vendredi</span>
-                          <span>15h30 - 19h45</span>
-                        </li>
-                        <li className="flex justify-between gap-4">
-                          <span>Samedi</span>
-                          <span>09h45 - 16h00</span>
-                        </li>
+                        {horaires.lundi && (
+                          <li className="flex justify-between gap-4">
+                            <span>Lundi</span>
+                            <span>{horaires.lundi}</span>
+                          </li>
+                        )}
+                        {horaires.mardi && (
+                          <li className="flex justify-between gap-4">
+                            <span>Mardi</span>
+                            <span>{horaires.mardi}</span>
+                          </li>
+                        )}
+                        {horaires.mercredi && (
+                          <li className="flex justify-between gap-4">
+                            <span>Mercredi</span>
+                            <span>{horaires.mercredi}</span>
+                          </li>
+                        )}
+                        {horaires.jeudi && (
+                          <li className="flex justify-between gap-4">
+                            <span>Jeudi</span>
+                            <span>{horaires.jeudi}</span>
+                          </li>
+                        )}
+                        {horaires.vendredi && (
+                          <li className="flex justify-between gap-4">
+                            <span>Vendredi</span>
+                            <span>{horaires.vendredi}</span>
+                          </li>
+                        )}
+                        {horaires.samedi && (
+                          <li className="flex justify-between gap-4">
+                            <span>Samedi</span>
+                            <span>{horaires.samedi}</span>
+                          </li>
+                        )}
+                        {horaires.dimanche && (
+                          <li className="flex justify-between gap-4">
+                            <span>Dimanche</span>
+                            <span>{horaires.dimanche}</span>
+                          </li>
+                        )}
                       </ul>
                     </div>
                   </div>

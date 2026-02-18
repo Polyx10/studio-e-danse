@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -14,11 +15,23 @@ const navigation = [
   { name: "Tarifs", href: "/tarifs" },
   { name: "Stages", href: "/stages" },
   { name: "Actualités", href: "/actualites" },
+  { name: "Archives", href: "/archives" },
   { name: "Contact", href: "/contact" },
 ];
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleInscriptionClick = (e: React.MouseEvent) => {
+    if (pathname === '/inscription') {
+      e.preventDefault();
+      // Rediriger vers /inscription?reset=1 pour réinitialiser le formulaire
+      router.push('/inscription?reset=1');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full">
@@ -44,15 +57,15 @@ export function Header() {
       {/* Main navigation */}
       <nav className="bg-white/95 backdrop-blur-md shadow-sm">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-28">
+          <div className="flex items-center justify-between h-[120px]">
             {/* Logo */}
-            <Link href="/" className="flex items-center">
+            <Link href="/" className="flex items-center -ml-3">
               <Image
-                src="/images/logo.png"
+                src="/images/logo-hd.png"
                 alt="Studio e - École de danse"
-                width={280}
-                height={90}
-                className="h-20 w-auto"
+                width={600}
+                height={400}
+                className="h-[105px] w-[189px] object-fill"
                 priority
               />
             </Link>
@@ -63,7 +76,7 @@ export function Header() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-[#2D3436] hover:bg-amber-50 rounded-md transition"
+                  className="px-6 py-3 text-lg font-medium text-gray-700 hover:text-[#2D3436] hover:bg-amber-50 rounded-md transition"
                 >
                   {item.name}
                 </Link>
@@ -73,7 +86,7 @@ export function Header() {
             {/* CTA Button */}
             <div className="hidden lg:block">
               <Button asChild className="bg-[#2D3436] hover:bg-[#3d4446]">
-                <Link href="/inscription">S&apos;inscrire</Link>
+                <Link href="/inscription" onClick={handleInscriptionClick}>S&apos;inscrire</Link>
               </Button>
             </div>
 
@@ -99,7 +112,13 @@ export function Header() {
                   ))}
                   <div className="pt-4 border-t">
                     <Button asChild className="w-full bg-[#2D3436] hover:bg-[#3d4446]">
-                      <Link href="/inscription" onClick={() => setIsOpen(false)}>
+                      <Link 
+                        href="/inscription" 
+                        onClick={(e) => {
+                          setIsOpen(false);
+                          handleInscriptionClick(e);
+                        }}
+                      >
                         S&apos;inscrire
                       </Link>
                     </Button>

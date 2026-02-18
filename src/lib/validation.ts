@@ -15,31 +15,54 @@ function calculateAge(birthDate: string): number {
 // Schéma de validation pour les inscriptions
 export const inscriptionSchema = z.object({
   // Informations élève
-  student_name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères').max(100, 'Le nom est trop long'),
+  student_last_name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères').max(100, 'Le nom est trop long'),
+  student_first_name: z.string().min(2, 'Le prénom doit contenir au moins 2 caractères').max(100, 'Le prénom est trop long'),
   student_gender: z.enum(['M', 'F']),
   student_birth_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format de date invalide'),
   student_address: z.string().max(200, 'L\'adresse est trop longue').nullable().optional(),
   student_postal_code: z.string().regex(/^\d{5}$/, 'Code postal invalide (5 chiffres)').nullable().optional(),
   student_city: z.string().max(100, 'Le nom de la ville est trop long').nullable().optional(),
-  student_phone: z.string().regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide').nullable().optional(),
-  student_email: z.string().email('Email invalide').max(100, 'Email trop long').nullable().optional(),
+  student_phone: z.string()
+    .transform(val => val ? val.replace(/[\s\-\.]/g, '') : '')
+    .refine(val => val === '' || /^(\+33|0033|0)[1-9](\d{8})$/.test(val), {
+      message: 'Numéro de téléphone invalide'
+    })
+    .transform(val => val === '' ? null : val)
+    .nullable()
+    .optional(),
+  student_email: z.union([z.string().email('Email invalide').max(100, 'Email trop long'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
   
   // Responsables légaux (obligatoires uniquement pour les mineurs)
-  responsable1_name: z.string().max(100, 'Le nom est trop long').nullable().optional(),
-  responsable1_phone: z.string().regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide').nullable().optional(),
-  responsable1_email: z.string().email('Email invalide').max(100, 'Email trop long').nullable().optional(),
-  responsable2_name: z.string().max(100, 'Le nom est trop long').nullable().optional(),
-  responsable2_address: z.string().max(200, 'L\'adresse est trop longue').nullable().optional(),
-  responsable2_postal_code: z.string().regex(/^\d{5}$/, 'Code postal invalide (5 chiffres)').nullable().optional(),
-  responsable2_city: z.string().max(100, 'Le nom de la ville est trop long').nullable().optional(),
-  responsable2_phone: z.string().regex(/^(\+33|0)[1-9](\d{2}){4}$/, 'Numéro de téléphone invalide').nullable().optional(),
-  responsable2_email: z.string().email('Email invalide').max(100, 'Email trop long').nullable().optional(),
+  responsable1_name: z.union([z.string().max(100, 'Le nom est trop long'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
+  responsable1_phone: z.string()
+    .transform(val => val ? val.replace(/[\s\-\.]/g, '') : '')
+    .refine(val => val === '' || /^(\+33|0033|0)[1-9](\d{8})$/.test(val), {
+      message: 'Numéro de téléphone invalide'
+    })
+    .transform(val => val === '' ? null : val)
+    .nullable()
+    .optional(),
+  responsable1_email: z.union([z.string().email('Email invalide').max(100, 'Email trop long'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
+  responsable2_name: z.union([z.string().max(100, 'Le nom est trop long'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
+  responsable2_address: z.union([z.string().max(200, 'L\'adresse est trop longue'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
+  responsable2_postal_code: z.union([z.string().regex(/^\d{5}$/, 'Code postal invalide (5 chiffres)'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
+  responsable2_city: z.union([z.string().max(100, 'Le nom de la ville est trop long'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
+  responsable2_phone: z.string()
+    .transform(val => val ? val.replace(/[\s\-\.]/g, '') : '')
+    .refine(val => val === '' || /^(\+33|0033|0)[1-9](\d{8})$/.test(val), {
+      message: 'Numéro de téléphone invalide'
+    })
+    .transform(val => val === '' ? null : val)
+    .nullable()
+    .optional(),
+  responsable2_email: z.union([z.string().email('Email invalide').max(100, 'Email trop long'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
   
   // Cours sélectionnés
   selected_courses: z.array(z.string().min(1, 'ID de cours invalide')).min(1, 'Au moins un cours doit être sélectionné').max(10, 'Trop de cours sélectionnés'),
   
   // Tarification
   tarif_reduit: z.boolean(),
+  rattachement_famille: z.union([z.string().max(200, 'Le nom est trop long'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
   tarif_cours: z.number().min(0, 'Le tarif ne peut pas être négatif').max(10000, 'Tarif invalide'),
   adhesion: z.number().min(0, 'L\'adhésion ne peut pas être négative').max(1000, 'Adhésion invalide'),
   licence_ffd: z.number().min(0, 'La licence FFD ne peut pas être négative').max(1000, 'Licence FFD invalide'),
@@ -59,6 +82,8 @@ export const inscriptionSchema = z.object({
   // Paiement
   mode_paiement: z.array(z.string()).nullable().optional(),
   nombre_versements: z.string().nullable().optional(),
+  engagement_paiement_echelonne: z.boolean().optional(),
+  preinscription_payee: z.boolean().optional(),
   
   // Règlement et droits
   accept_rules: z.boolean().refine(val => val === true, 'Le règlement intérieur doit être accepté'),
@@ -159,6 +184,17 @@ export const inscriptionSchema = z.object({
         code: z.ZodIssueCode.custom,
         message: 'La ville est obligatoire',
         path: ['student_city'],
+      });
+    }
+  }
+  
+  // Validation de l'engagement pour paiement échelonné
+  if (data.nombre_versements === '3' || data.nombre_versements === '10') {
+    if (!data.engagement_paiement_echelonne) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Vous devez accepter l\'engagement sur l\'honneur pour un paiement échelonné',
+        path: ['engagement_paiement_echelonne'],
       });
     }
   }

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight, Clock, Euro, Users, CheckCircle2 } from "lucide-react";
-import { tarifGrille, tarifsSpeciaux, fraisFixes } from "@/lib/planning-data";
+import { tarifGrille, tarifsSpeciaux, fraisFixes, grilleNiveaux } from "@/lib/planning-data";
 
 export default function TarifsPage() {
   return (
@@ -195,7 +195,7 @@ export default function TarifsPage() {
                 </CardHeader>
                 <CardContent className="pt-6 text-center">
                   <p className="text-4xl font-bold text-[#F9CA24] mb-2">{fraisFixes.licenceFFD} €</p>
-                  <p className="text-sm text-gray-600">Pour tous</p>
+                  <p className="text-sm text-gray-600">Obligatoire à partir de 4 ans</p>
                 </CardContent>
               </Card>
             </div>

@@ -5,196 +5,62 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight, Clock, Users, Calendar } from "lucide-react";
-import { planningCours, professeursColors, CoursPlanning } from "@/lib/planning-data";
-import { useRef, useEffect } from "react";
+import { planningCours, professeursColors, CoursPlanning, grilleNiveaux } from "@/lib/planning-data";
+import { useRef, useEffect, useState } from "react";
 
 // Metadata moved to layout or removed for client component
 
-const courses = [
-  {
-    id: "eveil",
-    title: "Éveil",
-    age: "4-6 ans",
-    duration: "45 min",
-    
-    color: "from-pink-400 to-pink-500",
-    description: "Les cours d'éveil sont à destination des très jeunes enfants. La pédagogie développée est centrée sur des notions d'expression corporelle, de rythmique et de motricité.",
-    details: [
-      "Extérioriser l'énergie du corps",
-      "Solliciter la fantaisie et l'imaginaire",
-      "Développer la concentration et l'attention",
-      "Découvrir les différentes parties du corps",
-      "Développer la coordination",
-      "Écouter et percevoir différents styles de musique",
-      "Se structurer dans l'espace",
-    ],
-    objectives: [
-      "Placer l'enfant en condition d'écoute",
-      "Amener l'enfant à se recentrer",
-      "Prendre conscience de son corps et maîtriser ses mouvements",
-      "Développer sa capacité respiratoire et son sens du rythme",
-      "Développer l'imaginaire et la créativité",
-    ],
-  },
-  {
-    id: "initiation",
-    title: "Initiation",
-    age: "6-7 ans",
-    duration: "1h",
-    
-    color: "from-purple-400 to-purple-500",
-    description: "Suite logique des cours d'éveil, le cours d'initiation approfondit le travail réalisé précédemment et prépare aux différentes disciplines de danse.",
-    details: [
-      "Développement des notions de 'parallèle' et 'en dehors'",
-      "Précision du rapport danse-musique",
-      "Travail sur le rythme et la mesure",
-      "Début du travail de coordination",
-      "Apprentissage des fondamentaux de la danse",
-    ],
-    objectives: [
-      "Maîtriser l'énergie (contrôle de la force du mouvement)",
-      "Comprendre le temps (apprentissage de la mesure)",
-      "Gérer l'espace (positionnement par rapport aux autres)",
-      "Appréhender le poids (imitation du lourd, du léger)",
-    ],
-  },
-  {
-    id: "classique",
-    title: "Danse Classique",
-    age: "8 ans et +",
-    duration: "1h30",
-    
-    color: "from-rose-400 to-rose-500",
-    description: "La danse classique est la base de toutes les danses. Elle revêt un caractère d'exigence et de respect de codes établis, héritière de la belle danse française depuis le 12ème siècle.",
-    details: [
-      "Esprit de rigueur et de netteté",
-      "Technique des pointes (niveau avancé)",
-      "Travail du placement et de la posture",
-      "Évolution vers le néo-classique",
-      "Formes angulaires, travail de décalé et de déséquilibre",
-    ],
-    objectives: [
-      "Acquérir une technique solide",
-      "Développer la grâce et l'élégance",
-      "Maîtriser le vocabulaire classique",
-      "Progresser vers les pointes",
-    ],
-  },
-  {
-    id: "modern-jazz",
-    title: "Modern'Jazz",
-    age: "8 ans et +",
-    duration: "1h30",
-    
-    color: "from-amber-400 to-orange-500",
-    description: "Une danse puissante dont le fondamental est la relation à la musique. Le Modern'Jazz nécessite rigueur et sens de l'expression, sollicitant inspiration, émotion et énergie vitale.",
-    details: [
-      "Passerelle entre vocabulaire classique et contemporain",
-      "Alliance harmonieuse des rythmes et des styles",
-      "Technique exigeante et sentiment authentique",
-      "Jeu subtil entre force et douceur",
-      "Moyen d'expression complet",
-    ],
-    objectives: [
-      "Maîtriser la technique jazz",
-      "Développer l'expression personnelle",
-      "Travailler la musicalité",
-      "Acquérir puissance et fluidité",
-    ],
-  },
-  {
-    id: "contemporain",
-    title: "Danse Contemporaine",
-    age: "Ados/Adultes",
-    duration: "1h30",
-    
-    color: "from-teal-400 to-cyan-500",
-    description: "La danse contemporaine offre une liberté d'expression unique, explorant le mouvement dans toutes ses dimensions et encourageant la créativité personnelle.",
-    details: [
-      "Exploration du mouvement libre",
-      "Travail au sol",
-      "Improvisation guidée",
-      "Création chorégraphique",
-      "Expression personnelle",
-    ],
-    objectives: [
-      "Développer sa propre gestuelle",
-      "Explorer les possibilités du corps",
-      "Créer et improviser",
-      "S'exprimer à travers le mouvement",
-    ],
-  },
-  {
-    id: "barre-au-sol",
-    title: "Barre au Sol",
-    age: "15 ans et +",
-    duration: "1h",
-    
-    color: "from-green-400 to-emerald-500",
-    description: "Ce cours propose des séances d'échauffement, d'assouplissement et de travail de l'en-dehors. Chaque chaîne musculaire est systématiquement étirée.",
-    details: [
-      "Exercices assis, allongé ou sur le côté",
-      "Étirement de chaque chaîne musculaire",
-      "Renforcement musculaire profond",
-      "Travail de l'en-dehors",
-      "Amélioration de la souplesse",
-    ],
-    objectives: [
-      "Renforcer les muscles en profondeur",
-      "Gagner en souplesse",
-      "Améliorer sa posture",
-      "Prévenir les blessures",
-    ],
-  },
-  {
-    id: "danse-etudes",
-    title: "Danse Études Jazz",
-    age: "Collège/Lycée",
-    duration: "1h45 x 2/semaine",
-    
-    color: "from-indigo-400 to-indigo-500",
-    description: "Section intensive pour les élèves souhaitant approfondir leur pratique avec des horaires aménagés en partenariat avec les établissements scolaires.",
-    details: [
-      "Cours le mardi et vendredi de 15h45 à 17h30",
-      "Admission : 4 ans de pratique minimum",
-      "Travail technique approfondi",
-      "Improvisation et danse contact",
-      "Création chorégraphique",
-    ],
-    objectives: [
-      "Atteindre un niveau pré-professionnel",
-      "Développer sa créativité",
-      "Préparer les concours",
-      "Concilier études et danse intensive",
-    ],
-    requirements: "4 ans de pratique de la danse Jazz et/ou 2 cours niveau ADO minimum. Aval du professeur requis.",
-  },
-  {
-    id: "concours",
-    title: "Préparation Concours",
-    age: "Sur sélection",
-    duration: "Variable",
-    
-    color: "from-yellow-400 to-amber-500",
-    description: "Préparation et participation aux concours départementaux, régionaux et nationaux de la Fédération Française de Danse et autres compétitions.",
-    details: [
-      "Concours FFDanse",
-      "Confédération Nationale de Danse",
-      "Aéra Dance Compétition",
-      "NéodanceContest",
-      "Autres compétitions nationales et internationales",
-    ],
-    objectives: [
-      "Se préparer aux compétitions",
-      "Développer la performance scénique",
-      "Gérer le stress de la compétition",
-      "Représenter l'école avec excellence",
-    ],
-  },
+const COURSE_COLORS = [
+  "from-pink-400 to-pink-500",
+  "from-purple-400 to-purple-500",
+  "from-rose-400 to-rose-500",
+  "from-amber-400 to-orange-500",
+  "from-teal-400 to-cyan-500",
+  "from-green-400 to-emerald-500",
+  "from-indigo-400 to-indigo-500",
+  "from-yellow-400 to-amber-500",
 ];
 
+function parseCourseText(texte: string) {
+  const parts = texte.split(/---(?:DETAILS|OBJECTIFS|CONDITIONS)---/);
+  const description = (parts[0] || '').trim();
+
+  const detailsMatch = texte.match(/---DETAILS---\n([\s\S]*?)(?=---(?:OBJECTIFS|CONDITIONS)---|$)/);
+  const objectifsMatch = texte.match(/---OBJECTIFS---\n([\s\S]*?)(?=---CONDITIONS---|$)/);
+  const conditionsMatch = texte.match(/---CONDITIONS---\n([\s\S]*)$/);
+
+  const details = detailsMatch ? detailsMatch[1].trim().split('\n').filter(Boolean) : [];
+  const objectives = objectifsMatch ? objectifsMatch[1].trim().split('\n').filter(Boolean) : [];
+  const requirements = conditionsMatch ? conditionsMatch[1].trim() : undefined;
+
+  return { description, details, objectives, requirements };
+}
+
+interface CourseFiche {
+  id: number;
+  titre: string;
+  texte: string;
+  photos: string[];
+  categorie: string;
+}
+
 export default function CoursPage() {
-  // Pas de scroll nécessaire pour la vue compacte
+  const [coursDynamiques, setCoursDynamiques] = useState<CoursPlanning[] | null>(null);
+  const [coursesFiches, setCoursesFiches] = useState<CourseFiche[]>([]);
+
+  useEffect(() => {
+    fetch('/api/planning')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data) setCoursDynamiques(data); })
+      .catch(() => {});
+    fetch('/api/pages-content?page=cours')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (data) setCoursesFiches(data); })
+      .catch(() => {});
+  }, []);
+
+  // Utiliser les cours dynamiques (BDD) si disponibles, sinon fallback sur le fichier statique
+  const coursAffiches = coursDynamiques || planningCours;
 
   return (
     <div className="flex flex-col">
@@ -238,7 +104,7 @@ export default function CoursPage() {
               <div className="flex bg-gray-100">
                 <div className="w-20 bg-gray-200 text-center py-2 font-semibold text-xs border-r">Heures</div>
                 {["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"].map((jour) => {
-                  const coursJour = planningCours.filter((c: CoursPlanning) => c.jour === jour);
+                  const coursJour = coursAffiches.filter((c: CoursPlanning) => c.jour === jour);
                   const sallesAvecCours = ["AC", "LDN", "TV"].filter(salle => 
                     coursJour.some(c => c.salle === salle)
                   );
@@ -281,7 +147,7 @@ export default function CoursPage() {
                 
                 {/* Colonnes des jours - salles avec cours uniquement */}
                 {["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"].map((jour) => {
-                  const coursJour = planningCours.filter((c: CoursPlanning) => c.jour === jour);
+                  const coursJour = coursAffiches.filter((c: CoursPlanning) => c.jour === jour);
                   const sallesAvecCours = ["AC", "LDN", "TV"].filter(salle => 
                     coursJour.some(c => c.salle === salle)
                   );
@@ -352,63 +218,170 @@ export default function CoursPage() {
       </section>
 
       {/* Courses Grid */}
+      {coursesFiches.length > 0 && (
+        <section className="py-16 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <div className="space-y-12">
+              {coursesFiches.map((fiche, index) => {
+                const { description, details, objectives, requirements } = parseCourseText(fiche.texte);
+                const color = COURSE_COLORS[index % COURSE_COLORS.length];
+                const catParts = (fiche.categorie || '').split('•').map(s => s.trim());
+                const age = catParts[0] || '';
+                const duration = catParts[1] || '';
+
+                return (
+                  <Card key={fiche.id} className="overflow-hidden border-0 shadow-lg">
+                    <div className={`h-2 bg-gradient-to-r ${color}`} />
+                    <CardHeader className="pb-4">
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                          <CardTitle className="text-2xl md:text-3xl">{fiche.titre}</CardTitle>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {age && <Badge variant="secondary">{age}</Badge>}
+                            {duration && <Badge variant="outline">{duration}</Badge>}
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <p className="text-lg text-gray-700 leading-relaxed">
+                        {description}
+                      </p>
+                      
+                      {(details.length > 0 || objectives.length > 0) && (
+                        <div className="grid md:grid-cols-2 gap-6">
+                          {details.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-3">Contenu du cours</h4>
+                              <ul className="space-y-2">
+                                {details.map((detail, i) => (
+                                  <li key={i} className="flex items-start gap-2 text-gray-600">
+                                    <span className="text-[#F9CA24] mt-1">•</span>
+                                    {detail}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {objectives.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-3">Objectifs</h4>
+                              <ul className="space-y-2">
+                                {objectives.map((objective, i) => (
+                                  <li key={i} className="flex items-start gap-2 text-gray-600">
+                                    <span className="text-green-500 mt-1">✓</span>
+                                    {objective}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {requirements && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                          <p className="text-[#2D3436] text-sm">
+                            <strong>Conditions d&apos;admission :</strong> {requirements}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Grille des niveaux */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="space-y-12">
-            {courses.map((course, index) => (
-              <Card key={course.id} id={course.id} className="overflow-hidden border-0 shadow-lg">
-                <div className={`h-2 bg-gradient-to-r ${course.color}`} />
-                <CardHeader className="pb-4">
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <CardTitle className="text-2xl md:text-3xl">{course.title}</CardTitle>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        <Badge variant="secondary">{course.age}</Badge>
-                        <Badge variant="outline">{course.duration}</Badge>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <p className="text-lg text-gray-700 leading-relaxed">
-                    {course.description}
-                  </p>
-                  
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-3">Contenu du cours</h4>
-                      <ul className="space-y-2">
-                        {course.details.map((detail, i) => (
-                          <li key={i} className="flex items-start gap-2 text-gray-600">
-                            <span className="text-[#F9CA24] mt-1">•</span>
-                            {detail}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-3">Objectifs</h4>
-                      <ul className="space-y-2">
-                        {course.objectives.map((objective, i) => (
-                          <li key={i} className="flex items-start gap-2 text-gray-600">
-                            <span className="text-green-500 mt-1">✓</span>
-                            {objective}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Grille des niveaux par âge</h2>
+              <p className="text-gray-600 text-lg">
+                Trouvez rapidement le niveau adapté à votre âge
+              </p>
+            </div>
 
-                  {course.requirements && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                      <p className="text-[#2D3436] text-sm">
-                        <strong>Conditions d&apos;admission :</strong> {course.requirements}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-[#2D3436] text-white">
+                      <th className="px-6 py-4 text-left font-semibold">Niveau</th>
+                      <th className="px-6 py-4 text-center font-semibold">Âge</th>
+                      <th className="px-6 py-4 text-center font-semibold">Classes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {grilleNiveaux
+                      .filter(n => !n.surSelection)
+                      .sort((a, b) => {
+                        const minA = a.ageMin ?? 0;
+                        const minB = b.ageMin ?? 0;
+                        return minA - minB;
+                      })
+                      .map((niveau, idx) => {
+                        const ageDisplay = niveau.ageMin === null && niveau.ageMax === null
+                          ? "Tous âges"
+                          : niveau.ageMin === null
+                          ? `Jusqu'à ${niveau.ageMax! - 1} ans`
+                          : niveau.ageMax === null
+                          ? `${niveau.ageMin}+ ans`
+                          : `${niveau.ageMin}-${niveau.ageMax - 1} ans`;
+
+                        // Correspondances classes scolaires selon grille officielle 2025/2026
+                        const getClasses = (nom: string) => {
+                          if (nom.includes('Baby')) return 'PS (3-4 ans)';
+                          if (nom.includes('Éveils')) return 'MS - GS';
+                          if (nom.includes('Initiation') && nom.includes('Classique')) return 'CP';
+                          if (nom.includes('Enfant 1') && !nom.includes('&')) return 'CE1';
+                          if (nom.includes('Enfant 2')) return 'CE2';
+                          if (nom.includes('Enfant 1 & 2')) return 'CE1 - CE2';
+                          if (nom.includes('Ado 1') && nom.includes('Classique')) return 'CM1 - 6ème';
+                          if (nom.includes('Ado 2') && nom.includes('Classique')) return '5ème - Terminale';
+                          if (nom.includes('Classique Adulte')) return 'Lycée et +';
+                          if (nom.includes('Initiation') && nom.includes('Jazz')) return 'CP - CE1';
+                          if (nom.includes('Jazz KID')) return 'CE2 - CM1 - CM2';
+                          if (nom.includes('Jazz ADO')) return '6ème - 4ème';
+                          if (nom.includes('Jazz Jeune Adulte Inter')) return '3ème et lycée';
+                          if (nom.includes('Jazz Jeune Adulte Avancé')) return 'Lycée et +';
+                          if (nom.includes('Jazz Adulte')) return 'Adultes (26+)';
+                          if (nom.includes('Contemporain ADO')) return '6ème - 2nde';
+                          if (nom.includes('Contemporain Adulte')) return 'Lycée et +';
+                          if (nom.includes('BAS')) return '6ème et +';
+                          if (nom.includes('Technique')) return 'CE2 - 4ème';
+                          return '-';
+                        };
+
+                        return (
+                          <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                            <td className="px-6 py-3 font-medium text-gray-900">{niveau.niveau}</td>
+                            <td className="px-6 py-3 text-center">
+                              <Badge variant="secondary" className="text-sm">
+                                {ageDisplay}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-3 text-center text-sm text-gray-700">
+                              {getClasses(niveau.niveau)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+              <p className="text-sm text-gray-700">
+                <strong>ℹ️ Information :</strong> Les cours Danse Études et Concours sont sur sélection. 
+                Contactez-nous pour plus d&apos;informations.
+              </p>
+            </div>
           </div>
         </div>
       </section>
