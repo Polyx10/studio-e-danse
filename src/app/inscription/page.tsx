@@ -20,6 +20,11 @@ import { useConfig } from "@/hooks/useConfig";
 import { getPeriodeFromDate, calculerTarifProrata, periodesLabels, vacancesDefaut2526 } from "@/lib/prorata-data";
 import type { PeriodeProrata, VacancesScolaires } from "@/lib/prorata-data";
 
+// Formater un montant avec 2 décimales (ex: 21.5 → "21,50")
+function fmt(n: number): string {
+  return n.toFixed(2).replace('.', ',');
+}
+
 function StepIndicator({ currentStep, isMajeur }: { currentStep: number; isMajeur: boolean }) {
   const steps = isMajeur
     ? [
@@ -856,7 +861,7 @@ export default function InscriptionPage() {
                             <p className="text-xs text-blue-600 mt-1">
                               Le tarif cours est calculé au prorata de la période d&apos;entrée dans la saison.
                               {tarifCalcule.tarifCoursAnnuel > 0 && (
-                                <> Tarif annuel : {tarifCalcule.tarifCoursAnnuel}€ → Tarif prorata : {tarifCalcule.tarifCours}€</>
+                                <> Tarif annuel : {fmt(tarifCalcule.tarifCoursAnnuel)} € → Tarif prorata : {fmt(tarifCalcule.tarifCours)} €</>
                               )}
                             </p>
                           </div>
@@ -918,15 +923,15 @@ export default function InscriptionPage() {
                                     <span className={`text-sm font-medium ${e.mois.includes('Préinscription') ? 'text-green-800' : ''}`}>{e.mois}</span>
                                     {e.details && <p className="text-xs text-gray-500">{e.details}</p>}
                                   </div>
-                                  <span className={`font-semibold text-sm ml-4 ${e.mois.includes('Préinscription') ? 'text-green-800' : ''}`}>{e.montant} €</span>
+                                  <span className={`font-semibold text-sm ml-4 ${e.mois.includes('Préinscription') ? 'text-green-800' : ''}`}>{fmt(e.montant)} €</span>
                                 </div>
                               ))}
                               <div className="flex justify-between items-center pt-3 border-t-2 border-gray-300">
                                 <span className="font-bold">Total</span>
-                                <span className="font-bold text-lg">{Math.floor(tarifCalcule.total)} €</span>
+                                <span className="font-bold text-lg">{fmt(tarifCalcule.total)} €</span>
                               </div>
                             </div>
-                            <p className="text-xs text-gray-500">Les montants sont arrondis à l&apos;euro inférieur, sans centimes. Le paiement échelonné n&apos;est disponible que par chèque.</p>
+                            <p className="text-xs text-gray-500">Le paiement échelonné n&apos;est disponible que par chèque.</p>
 
                             <Button
                               type="button"
@@ -960,7 +965,7 @@ export default function InscriptionPage() {
                                   tarifDanseEtudes: tarifCalcule.tarifDanseEtudes,
                                   adhesion: tarifCalcule.adhesion,
                                   licenceFFD: tarifCalcule.licenceFFD,
-                                  totalGeneral: Math.floor(tarifCalcule.total),
+                                  totalGeneral: tarifCalcule.total,
                                   tarifReduit: formData.tarifReduit,
                                   danseEtudes: formData.danseEtudesOption,
                                   participationSpectacle: formData.participationSpectacle,
@@ -1017,12 +1022,12 @@ export default function InscriptionPage() {
                                 {echeances.map((e, i) => (
                                   <div key={i} className="flex justify-between text-sm">
                                     <span>{e.mois}</span>
-                                    <span className="font-medium">{e.montant} €</span>
+                                    <span className="font-medium">{fmt(e.montant)} €</span>
                                   </div>
                                 ))}
                                 <div className="flex justify-between text-sm font-bold border-t pt-1 mt-1">
                                   <span>Total</span>
-                                  <span>{Math.floor(tarifCalcule.total)} €</span>
+                                  <span>{fmt(tarifCalcule.total)} €</span>
                                 </div>
                               </div>
                             </div>
@@ -1060,7 +1065,7 @@ export default function InscriptionPage() {
                                   tarifDanseEtudes: tarifCalcule.tarifDanseEtudes,
                                   adhesion: tarifCalcule.adhesion,
                                   licenceFFD: tarifCalcule.licenceFFD,
-                                  totalGeneral: Math.floor(tarifCalcule.total),
+                                  totalGeneral: tarifCalcule.total,
                                   tarifReduit: formData.tarifReduit,
                                   danseEtudes: formData.danseEtudesOption,
                                   participationSpectacle: formData.participationSpectacle,
@@ -1104,7 +1109,7 @@ export default function InscriptionPage() {
               </div>
 
               <div className="lg:col-span-1">
-                <Card className="border-0 shadow-lg sticky top-4">
+                <Card className="border-0 shadow-lg">
                   <CardHeader className="bg-[#2D3436] text-white rounded-t-lg py-4">
                     <CardTitle className="flex items-center gap-2"><Calculator className="h-5 w-5" />Estimation tarif</CardTitle>
                   </CardHeader>
@@ -1113,28 +1118,28 @@ export default function InscriptionPage() {
                     {tarifCalcule.tarifCours > 0 && (
                       <div className="flex justify-between text-sm">
                         <span>Cours {formData.tarifReduit ? "(réduit)" : "(plein)"}{prorataActif ? " prorata" : ""}</span>
-                        <span className="font-medium">{tarifCalcule.tarifCours} €</span>
+                        <span className="font-medium">{fmt(tarifCalcule.tarifCours)} €</span>
                       </div>
                     )}
                     {prorataActif && tarifCalcule.tarifCoursAnnuel > 0 && tarifCalcule.tarifCoursAnnuel !== tarifCalcule.tarifCours && (
                       <div className="flex justify-between text-xs text-gray-400">
                         <span>Tarif annuel</span>
-                        <span className="line-through">{tarifCalcule.tarifCoursAnnuel} €</span>
+                        <span className="line-through">{fmt(tarifCalcule.tarifCoursAnnuel)} €</span>
                       </div>
                     )}
-                    {tarifCalcule.tarifDanseEtudes > 0 && <div className="flex justify-between text-sm"><span>Danse Études</span><span className="font-medium">{tarifCalcule.tarifDanseEtudes} €</span></div>}
-                    {tarifCalcule.tarifConcours > 0 && <div className="flex justify-between text-sm"><span>Concours</span><span className="font-medium">{tarifCalcule.tarifConcours} €</span></div>}
+                    {tarifCalcule.tarifDanseEtudes > 0 && <div className="flex justify-between text-sm"><span>Danse Études</span><span className="font-medium">{fmt(tarifCalcule.tarifDanseEtudes)} €</span></div>}
+                    {tarifCalcule.tarifConcours > 0 && <div className="flex justify-between text-sm"><span>Concours</span><span className="font-medium">{fmt(tarifCalcule.tarifConcours)} €</span></div>}
                     <div className="border-t pt-3">
-                      <div className="flex justify-between text-sm"><span>Sous-total cours</span><span className="font-medium">{tarifCalcule.totalCours} €</span></div>
+                      <div className="flex justify-between text-sm"><span>Sous-total cours</span><span className="font-medium">{fmt(tarifCalcule.totalCours)} €</span></div>
                     </div>
-                    <div className="flex justify-between text-sm"><span>Adhésion</span><span className="font-medium">{tarifCalcule.adhesion} €</span></div>
-                    <div className="flex justify-between text-sm"><span>Licence FFD</span><span className="font-medium">{tarifCalcule.licenceFFD} €</span></div>
+                    <div className="flex justify-between text-sm"><span>Adhésion</span><span className="font-medium">{fmt(tarifCalcule.adhesion)} €</span></div>
+                    <div className="flex justify-between text-sm"><span>Licence FFD</span><span className="font-medium">{fmt(tarifCalcule.licenceFFD)} €</span></div>
                     <div className="border-t pt-3">
-                      <div className="flex justify-between text-lg font-bold"><span>TOTAL</span><span className="text-[#F9CA24]">{tarifCalcule.total} €</span></div>
+                      <div className="flex justify-between text-lg font-bold"><span>TOTAL</span><span className="text-[#F9CA24]">{fmt(tarifCalcule.total)} €</span></div>
                     </div>
                     {preinscriptionEffective && tarifCalcule.total > 0 && (
                       <div className="bg-green-50 rounded p-2 mt-2">
-                        <p className="text-xs font-semibold text-green-700">Préinscription : {montantPreinscription} €</p>
+                        <p className="text-xs font-semibold text-green-700">Préinscription : {fmt(montantPreinscription)} €</p>
                       </div>
                     )}
                     {echeances.length > 1 && (
@@ -1143,7 +1148,7 @@ export default function InscriptionPage() {
                         {echeances.map((e, i) => (
                           <div key={i} className={`flex justify-between text-xs ${e.mois.includes('Préinscription') ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
                             <span>{e.mois}</span>
-                            <span className="font-medium">{e.montant} €</span>
+                            <span className="font-medium">{fmt(e.montant)} €</span>
                           </div>
                         ))}
                       </div>

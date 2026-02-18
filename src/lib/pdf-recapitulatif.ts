@@ -1,6 +1,11 @@
 import jsPDF from 'jspdf';
 import { Echeance } from './echeancier';
 
+// Formater un montant avec 2 décimales (ex: 21.5 → "21,50")
+function fmtPdf(n: number): string {
+  return n.toFixed(2).replace('.', ',');
+}
+
 interface DonneesInscription {
   // Élève
   nomEleve: string;
@@ -221,7 +226,7 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
 
   tarifItems.forEach((item, idx) => {
     doc.text(item.label, tarifX, y);
-    doc.text(`${item.montant} €`, montantX, y, { align: 'right' });
+    doc.text(`${fmtPdf(item.montant)} €`, montantX, y, { align: 'right' });
     if (idx === 0 && donnees.tarifReduit) {
       doc.setTextColor(0, 128, 0);
       doc.setFont('helvetica', 'italic');
@@ -242,7 +247,7 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   doc.text('TOTAL', tarifX, y);
-  doc.text(`${donnees.totalGeneral} €`, montantX, y, { align: 'right' });
+  doc.text(`${fmtPdf(donnees.totalGeneral)} €`, montantX, y, { align: 'right' });
 
   // ============ PAGE 2 — ÉCHÉANCIER + SIGNATURE ============
   doc.addPage();
@@ -274,7 +279,7 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 128, 0);
       doc.text(`•   ${echeance.mois}`, mg + 6, y);
-      doc.text(`${echeance.montant} €`, mg + 100, y, { align: 'right' });
+      doc.text(`${fmtPdf(echeance.montant)} €`, mg + 100, y, { align: 'right' });
       y += 5;
       if (echeance.details) {
         doc.setFontSize(7.5);
@@ -287,7 +292,7 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
       doc.setFont('helvetica', 'normal');
     } else {
       doc.text(`•   ${echeance.mois}`, mg + 6, y);
-      doc.text(`${echeance.montant} €`, mg + 100, y, { align: 'right' });
+      doc.text(`${fmtPdf(echeance.montant)} €`, mg + 100, y, { align: 'right' });
       y += 5;
     }
   });
