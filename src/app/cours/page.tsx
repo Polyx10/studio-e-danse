@@ -217,6 +217,96 @@ export default function CoursPage() {
         </div>
       </section>
 
+      {/* Grille des niveaux */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Grille des niveaux par âge</h2>
+              <p className="text-gray-600 text-lg">
+                Trouvez rapidement le niveau adapté à votre âge
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-[#2D3436] text-white">
+                      <th className="px-6 py-4 text-left font-semibold">Niveau</th>
+                      <th className="px-6 py-4 text-center font-semibold">Âge</th>
+                      <th className="px-6 py-4 text-center font-semibold">Classes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {grilleNiveaux
+                      .filter(n => !n.surSelection)
+                      .sort((a, b) => {
+                        const minA = a.ageMin ?? 0;
+                        const minB = b.ageMin ?? 0;
+                        return minA - minB;
+                      })
+                      .map((niveau, idx) => {
+                        const ageDisplay = niveau.ageMin === null && niveau.ageMax === null
+                          ? "Tous âges"
+                          : niveau.ageMin === null
+                          ? `Jusqu'à ${niveau.ageMax! - 1} ans`
+                          : niveau.ageMax === null
+                          ? `${niveau.ageMin}+ ans`
+                          : `${niveau.ageMin}-${niveau.ageMax - 1} ans`;
+
+                        const getClasses = (nom: string) => {
+                          if (nom.includes('Baby')) return 'PS';
+                          if (nom.includes('Éveils')) return 'MS - GS';
+                          if (nom.includes('Initiation') && nom.includes('Classique')) return 'CP';
+                          if (nom.includes('Enfant 1') && !nom.includes('&')) return 'CE1';
+                          if (nom.includes('Enfant 2')) return 'CE2';
+                          if (nom.includes('Enfant 1 & 2')) return 'CE1 - CE2';
+                          if (nom.includes('Ado 1') && nom.includes('Classique')) return 'CM1 - 6ème';
+                          if (nom.includes('Ado 2') && nom.includes('Classique')) return 'A partir de la 5ème';
+                          if (nom.includes('Classique Adulte')) return 'Lycée et +';
+                          if (nom.includes('Initiation') && nom.includes('Jazz')) return 'CP - CE1';
+                          if (nom.includes('Jazz KID')) return 'CE2 - CM1 - CM2';
+                          if (nom.includes('Jazz ADO')) return '6ème - 4ème';
+                          if (nom.includes('Jazz Jeune Adulte Inter')) return '3ème et lycée';
+                          if (nom.includes('Jazz Jeune Adulte Avancé')) return 'Lycée et +';
+                          if (nom.includes('Jazz Adulte')) return 'Adultes (26+)';
+                          if (nom.includes('Contemporain ADO')) return '6ème - 2nde';
+                          if (nom.includes('Contemporain Adulte')) return 'Lycée et +';
+                          if (nom.includes('BAS')) return '6ème et +';
+                          if (nom.includes('Technique')) return 'CE2 - 4ème';
+                          return '-';
+                        };
+
+                        return (
+                          <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                            <td className="px-6 py-3 font-medium text-gray-900">{niveau.niveau}</td>
+                            <td className="px-6 py-3 text-center">
+                              <Badge variant="secondary" className="text-sm">
+                                {ageDisplay}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-3 text-center text-sm text-gray-700">
+                              {getClasses(niveau.niveau)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+              <p className="text-sm text-gray-700">
+                <strong>ℹ️ Information :</strong> Les cours Danse Études et Concours sont sur sélection. 
+                Contactez-nous pour plus d&apos;informations.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Courses Grid */}
       {coursesFiches.length > 0 && (
         <section className="py-16 bg-gray-50">
@@ -294,97 +384,6 @@ export default function CoursPage() {
           </div>
         </section>
       )}
-
-      {/* Grille des niveaux */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Grille des niveaux par âge</h2>
-              <p className="text-gray-600 text-lg">
-                Trouvez rapidement le niveau adapté à votre âge
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-[#2D3436] text-white">
-                      <th className="px-6 py-4 text-left font-semibold">Niveau</th>
-                      <th className="px-6 py-4 text-center font-semibold">Âge</th>
-                      <th className="px-6 py-4 text-center font-semibold">Classes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {grilleNiveaux
-                      .filter(n => !n.surSelection)
-                      .sort((a, b) => {
-                        const minA = a.ageMin ?? 0;
-                        const minB = b.ageMin ?? 0;
-                        return minA - minB;
-                      })
-                      .map((niveau, idx) => {
-                        const ageDisplay = niveau.ageMin === null && niveau.ageMax === null
-                          ? "Tous âges"
-                          : niveau.ageMin === null
-                          ? `Jusqu'à ${niveau.ageMax! - 1} ans`
-                          : niveau.ageMax === null
-                          ? `${niveau.ageMin}+ ans`
-                          : `${niveau.ageMin}-${niveau.ageMax - 1} ans`;
-
-                        // Correspondances classes scolaires selon grille officielle 2025/2026
-                        const getClasses = (nom: string) => {
-                          if (nom.includes('Baby')) return 'PS (3-4 ans)';
-                          if (nom.includes('Éveils')) return 'MS - GS';
-                          if (nom.includes('Initiation') && nom.includes('Classique')) return 'CP';
-                          if (nom.includes('Enfant 1') && !nom.includes('&')) return 'CE1';
-                          if (nom.includes('Enfant 2')) return 'CE2';
-                          if (nom.includes('Enfant 1 & 2')) return 'CE1 - CE2';
-                          if (nom.includes('Ado 1') && nom.includes('Classique')) return 'CM1 - 6ème';
-                          if (nom.includes('Ado 2') && nom.includes('Classique')) return '5ème - Terminale';
-                          if (nom.includes('Classique Adulte')) return 'Lycée et +';
-                          if (nom.includes('Initiation') && nom.includes('Jazz')) return 'CP - CE1';
-                          if (nom.includes('Jazz KID')) return 'CE2 - CM1 - CM2';
-                          if (nom.includes('Jazz ADO')) return '6ème - 4ème';
-                          if (nom.includes('Jazz Jeune Adulte Inter')) return '3ème et lycée';
-                          if (nom.includes('Jazz Jeune Adulte Avancé')) return 'Lycée et +';
-                          if (nom.includes('Jazz Adulte')) return 'Adultes (26+)';
-                          if (nom.includes('Contemporain ADO')) return '6ème - 2nde';
-                          if (nom.includes('Contemporain Adulte')) return 'Lycée et +';
-                          if (nom.includes('BAS')) return '6ème et +';
-                          if (nom.includes('Technique')) return 'CE2 - 4ème';
-                          return '-';
-                        };
-
-                        return (
-                          <tr key={idx} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                            <td className="px-6 py-3 font-medium text-gray-900">{niveau.niveau}</td>
-                            <td className="px-6 py-3 text-center">
-                              <Badge variant="secondary" className="text-sm">
-                                {ageDisplay}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-3 text-center text-sm text-gray-700">
-                              {getClasses(niveau.niveau)}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-              <p className="text-sm text-gray-700">
-                <strong>ℹ️ Information :</strong> Les cours Danse Études et Concours sont sur sélection. 
-                Contactez-nous pour plus d&apos;informations.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-16 bg-white">

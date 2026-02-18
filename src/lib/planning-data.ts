@@ -84,7 +84,7 @@ export const grilleNiveaux: NiveauConfig[] = [
   { niveau: 'BAS', ageMin: 11, ageMax: null, coursIds: ['lun-2', 'mar-4', 'mer-12', 'ven-1'] },
   { niveau: 'Classique Adulte Intermédiaire', ageMin: 16, ageMax: null, coursIds: ['lun-3', 'mar-6'] },
   { niveau: 'Danse Études', ageMin: null, ageMax: null, coursIds: ['mar-1', 'ven-2'], surSelection: true },
-  { niveau: 'Classique Ado 2', ageMin: 12, ageMax: 18, coursIds: ['mar-2', 'ven-3'] },
+  { niveau: 'Classique Ado 2', ageMin: 12, ageMax: 19, coursIds: ['mar-2', 'ven-3'] },
   { niveau: 'Jazz ADO', ageMin: 11, ageMax: 15, coursIds: ['mar-3', 'mer-6'] },
   { niveau: 'Jazz Adulte Débutant', ageMin: 26, ageMax: null, coursIds: ['mar-5'] },
   { niveau: 'Jazz Adulte Intermédiaire', ageMin: 26, ageMax: null, coursIds: ['mar-7', 'sam-9'] },
