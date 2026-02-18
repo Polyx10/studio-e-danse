@@ -88,7 +88,7 @@ export const grilleNiveaux: NiveauConfig[] = [
   { niveau: 'Jazz ADO', ageMin: 11, ageMax: 15, coursIds: ['mar-3', 'mer-6'] },
   { niveau: 'Jazz Adulte Débutant', ageMin: 26, ageMax: null, coursIds: ['mar-5'] },
   { niveau: 'Jazz Adulte Intermédiaire', ageMin: 26, ageMax: null, coursIds: ['mar-7', 'sam-9'] },
-  { niveau: 'Éveils', ageMin: 4, ageMax: 6, coursIds: ['mer-1', 'mer-7', 'sam-7'] },
+  { niveau: 'Éveils', ageMin: 4, ageMax: 7, coursIds: ['mer-1', 'mer-7', 'sam-7'] },
   { niveau: 'Classique Initiation', ageMin: 6, ageMax: 8, coursIds: ['mer-2', 'sam-2'] },
   { niveau: 'Jazz KID', ageMin: 8, ageMax: 12, coursIds: ['mer-4', 'jeu-1'] },
   { niveau: 'Classique Enfant 1', ageMin: 7, ageMax: 9, coursIds: ['mer-5'] },
