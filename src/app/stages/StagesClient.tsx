@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { parseSimpleMarkdown } from "@/lib/markdown";
 
 interface Fiche {
   id: number;
@@ -153,9 +154,10 @@ export function StagesClient({ fiches }: { fiches: Fiche[] }) {
                       </div>
                       <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-2">{fiche.titre}</h2>
                       {fiche.texte && (
-                        <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify">
-                          {fiche.texte}
-                        </div>
+                        <div 
+                          className="text-gray-700 leading-relaxed whitespace-pre-line text-justify"
+                          dangerouslySetInnerHTML={{ __html: parseSimpleMarkdown(fiche.texte) }}
+                        />
                       )}
                       {fiche.photos && fiche.photos.length > 0 && (
                         <PhotoGallery photos={fiche.photos} />
