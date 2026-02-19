@@ -80,19 +80,19 @@ export interface NiveauConfig {
 }
 
 export const grilleNiveaux: NiveauConfig[] = [
-  { niveau: 'Classique Ado 1', ageMin: 9, ageMax: 13, coursIds: ['lun-1', 'mer-10'] },
+  { niveau: 'Classique Ado 1', ageMin: 9, ageMax: 12, coursIds: ['lun-4', 'lun-1', 'mer-10'] },
   { niveau: 'BAS', ageMin: 11, ageMax: null, coursIds: ['lun-2', 'mar-4', 'mer-12', 'ven-1'] },
   { niveau: 'Classique Adulte Intermédiaire', ageMin: 16, ageMax: null, coursIds: ['lun-3', 'mar-6'] },
   { niveau: 'Danse Études', ageMin: null, ageMax: null, coursIds: ['mar-1', 'ven-2'], surSelection: true },
-  { niveau: 'Classique Ado 2', ageMin: 12, ageMax: null, coursIds: ['mar-2', 'ven-3'] },
   { niveau: 'Jazz ADO', ageMin: 11, ageMax: 15, coursIds: ['mar-3', 'mer-6'] },
+  { niveau: 'Classique Ado 2', ageMin: 12, ageMax: 18, coursIds: ['mar-2', 'ven-3'] },
   { niveau: 'Jazz Adulte Débutant', ageMin: 26, ageMax: null, coursIds: ['mar-5'] },
   { niveau: 'Jazz Adulte Intermédiaire', ageMin: 26, ageMax: null, coursIds: ['mar-7', 'sam-9'] },
-  { niveau: 'Éveils', ageMin: 4, ageMax: 7, coursIds: ['mer-1', 'mer-7', 'sam-7'] },
-  { niveau: 'Classique Initiation', ageMin: 6, ageMax: 8, coursIds: ['mer-2', 'sam-2'] },
-  { niveau: 'Jazz KID', ageMin: 8, ageMax: 12, coursIds: ['mer-4', 'jeu-1'] },
-  { niveau: 'Classique Enfant 1', ageMin: 7, ageMax: 9, coursIds: ['mer-5'] },
-  { niveau: 'Classique Enfant 2', ageMin: 8, ageMax: 10, coursIds: ['mer-8'] },
+  { niveau: 'Éveils', ageMin: 4, ageMax: 6, coursIds: ['mer-1', 'mer-7', 'sam-7'] },
+  { niveau: 'Classique Initiation', ageMin: 6, ageMax: 7, coursIds: ['mer-2', 'sam-2'] },
+  { niveau: 'Jazz KID', ageMin: 8, ageMax: 11, coursIds: ['mer-4', 'jeu-1'] },
+  { niveau: 'Classique Enfant 1', ageMin: 7, ageMax: 8, coursIds: ['mer-5'] },
+  { niveau: 'Classique Enfant 2', ageMin: 8, ageMax: 9, coursIds: ['mer-8'] },
   { niveau: 'Jazz Jeune Adulte Inter', ageMin: 15, ageMax: 19, coursIds: ['mer-9', 'ven-4'] },
   { niveau: 'Jazz Jeune Adulte Avancé', ageMin: 16, ageMax: null, coursIds: ['mer-11', 'ven-6'] },
   { niveau: 'Jazz Adulte Avancé', ageMin: 26, ageMax: null, coursIds: ['mer-13'] },
@@ -100,14 +100,14 @@ export const grilleNiveaux: NiveauConfig[] = [
   { niveau: 'Concours Youth', ageMin: null, ageMax: null, coursIds: ['jeu-3'], surSelection: true },
   { niveau: 'Classique Adulte Avancé', ageMin: 16, ageMax: null, coursIds: ['jeu-4', 'sam-10'] },
   { niveau: 'Classique Adulte Débutant', ageMin: 16, ageMax: null, coursIds: ['ven-5', 'sam-8'] },
-  { niveau: 'Concours Jazz Adulte', ageMin: null, ageMax: null, coursIds: ['jeu-5'], surSelection: true },
   { niveau: 'Contemporain Adulte Avancé', ageMin: 16, ageMax: null, coursIds: ['ven-7'] },
-  { niveau: 'Baby danse', ageMin: 3, ageMax: 5, coursIds: ['sam-1'] },
+  { niveau: 'Concours Jazz Adulte', ageMin: null, ageMax: null, coursIds: ['jeu-5'], surSelection: true },
+  { niveau: 'Baby danse', ageMin: 3, ageMax: 4, coursIds: ['sam-1'] },
+  { niveau: 'Jazz Initiation', ageMin: 6, ageMax: 8, coursIds: ['sam-4'] },
   { niveau: 'Concours Jazz KID', ageMin: null, ageMax: null, coursIds: ['sam-3'], surSelection: true },
-  { niveau: 'Jazz Initiation', ageMin: 6, ageMax: 9, coursIds: ['sam-4'] },
-  { niveau: 'Classique Enfant 1 & 2', ageMin: 7, ageMax: 10, coursIds: ['sam-5'] },
   { niveau: 'Concours Jazz ADO', ageMin: null, ageMax: null, coursIds: ['sam-6'], surSelection: true },
-  { niveau: 'Contemporain ADO', ageMin: 11, ageMax: 17, coursIds: ['sam-11'] },
+  { niveau: 'Classique Enfant 1 & 2', ageMin: 7, ageMax: 9, coursIds: ['sam-5'] },
+  { niveau: 'Contemporain ADO', ageMin: 11, ageMax: 16, coursIds: ['sam-11'] },
 ];
 
 // Pour une date de naissance, retourner les IDs de cours recommandés
@@ -163,14 +163,15 @@ export interface CoursPlanning {
 // Planning complet des cours
 export const planningCours: CoursPlanning[] = [
   // LUNDI
-  { id: "lun-1", jour: "Lundi", nom: "Classique ADO 3", horaire: "17h45-19h00", duree: 75, professeur: "Romane", salle: "LDN", heureDebut: 1065, heureFin: 1140 },
+  { id: "lun-4", jour: "Lundi", nom: "Classique ADO 1", horaire: "17h45-19h15", duree: 90, professeur: "Romane", salle: "LDN", heureDebut: 1065, heureFin: 1155 },
   { id: "lun-2", jour: "Lundi", nom: "BAS", horaire: "19h15-20h15", duree: 60, professeur: "Romane", salle: "LDN", heureDebut: 1155, heureFin: 1215 },
   { id: "lun-3", jour: "Lundi", nom: "Classique Adulte Inter", horaire: "20h15-21h45", duree: 90, professeur: "Romane", salle: "TV", heureDebut: 1215, heureFin: 1305 },
   
   // MARDI
   { id: "mar-1", jour: "Mardi", nom: "Jazz Danse Etude", horaire: "15h45-17h30", duree: 105, professeur: "Audrey", salle: "TV", isDanseEtudes: true, heureDebut: 945, heureFin: 1050 },
-  { id: "mar-2", jour: "Mardi", nom: "Classique ADO 2", horaire: "17h45-19h15", duree: 90, professeur: "Jeanette", salle: "LDN", heureDebut: 1065, heureFin: 1155 },
   { id: "mar-3", jour: "Mardi", nom: "Jazz ADO", horaire: "17h45-19h15", duree: 90, professeur: "Audrey", salle: "TV", heureDebut: 1065, heureFin: 1155 },
+  { id: "mar-2", jour: "Mardi", nom: "Classique ADO 2", horaire: "17h45-19h15", duree: 90, professeur: "Jeanette", salle: "LDN", heureDebut: 1065, heureFin: 1155 },
+  { id: "lun-1", jour: "Mardi", nom: "Classique ADO 3", horaire: "17h45-19h00", duree: 75, professeur: "Audrey", salle: "LDN", heureDebut: 1065, heureFin: 1140 },
   { id: "mar-4", jour: "Mardi", nom: "BAS", horaire: "19h15-20h15", duree: 60, professeur: "Jeanette", salle: "LDN", heureDebut: 1155, heureFin: 1215 },
   { id: "mar-5", jour: "Mardi", nom: "Jazz Adulte Debutant", horaire: "19h15-20h30", duree: 75, professeur: "Titouan", salle: "TV", heureDebut: 1155, heureFin: 1230 },
   { id: "mar-6", jour: "Mardi", nom: "Classique Adulte Inter", horaire: "20h15-21h45", duree: 90, professeur: "Jeanette", salle: "LDN", heureDebut: 1215, heureFin: 1305 },
@@ -203,17 +204,17 @@ export const planningCours: CoursPlanning[] = [
   { id: "ven-3", jour: "Vendredi", nom: "Classique ADO 2", horaire: "17h45-19h15", duree: 90, professeur: "Jeanette", salle: "LDN", heureDebut: 1065, heureFin: 1155 },
   { id: "ven-6", jour: "Vendredi", nom: "Jazz Jeune Adulte Avance", horaire: "19h00-20h30", duree: 90, professeur: "Audrey", salle: "TV", heureDebut: 1140, heureFin: 1230 },
   { id: "ven-5", jour: "Vendredi", nom: "Classique Adulte Debutant", horaire: "19h15-20h30", duree: 75, professeur: "Jeanette", salle: "LDN", heureDebut: 1155, heureFin: 1230 },
-  { id: "jeu-5", jour: "Vendredi", nom: "Concours Jazz Adulte", horaire: "20h30-21h30", duree: 60, professeur: "Audrey", salle: "LDN", isConcours: true, heureDebut: 1230, heureFin: 1290 },
   { id: "ven-7", jour: "Vendredi", nom: "Contemporain Adulte", horaire: "20h30-22h00", duree: 90, professeur: "Jeanette", salle: "TV", heureDebut: 1230, heureFin: 1320 },
+  { id: "jeu-5", jour: "Vendredi", nom: "Concours Jazz Adulte", horaire: "20h30-21h30", duree: 60, professeur: "Audrey", salle: "LDN", isConcours: true, heureDebut: 1230, heureFin: 1290 },
   
   // SAMEDI
   { id: "sam-1", jour: "Samedi", nom: "Baby danse", horaire: "9h30-10h00", duree: 30, professeur: "Audrey", salle: "TV", heureDebut: 570, heureFin: 600 },
-  { id: "sam-3", jour: "Samedi", nom: "Jazz KID Concours", horaire: "10h00-11h00", duree: 60, professeur: "Titouan", salle: "LDN", isConcours: true, heureDebut: 600, heureFin: 660 },
-  { id: "sam-4", jour: "Samedi", nom: "Jazz Initiation", horaire: "10h00-11h00", duree: 60, professeur: "Audrey", salle: "TV", heureDebut: 600, heureFin: 660 },
   { id: "sam-2", jour: "Samedi", nom: "Classique Initiation", horaire: "10h00-11h00", duree: 60, professeur: "Jeanette", salle: "AC", heureDebut: 600, heureFin: 660 },
-  { id: "sam-5", jour: "Samedi", nom: "Classique Enfant 1 Enfant 2", horaire: "11h00-12h15", duree: 75, professeur: "Jeanette", salle: "AC", heureDebut: 660, heureFin: 735 },
+  { id: "sam-4", jour: "Samedi", nom: "Jazz Initiation", horaire: "10h00-11h00", duree: 60, professeur: "Audrey", salle: "TV", heureDebut: 600, heureFin: 660 },
+  { id: "sam-3", jour: "Samedi", nom: "Jazz KID Concours", horaire: "10h00-11h00", duree: 60, professeur: "Titouan", salle: "LDN", isConcours: true, heureDebut: 600, heureFin: 660 },
   { id: "sam-6", jour: "Samedi", nom: "Jazz ADO Concours", horaire: "11h00-12h00", duree: 60, professeur: "Titouan", salle: "LDN", isConcours: true, heureDebut: 660, heureFin: 720 },
   { id: "sam-7", jour: "Samedi", nom: "Eveil", horaire: "11h00-11h45", duree: 45, professeur: "Audrey", salle: "TV", heureDebut: 660, heureFin: 705 },
+  { id: "sam-5", jour: "Samedi", nom: "Classique Enfant 1 Enfant 2", horaire: "11h00-12h15", duree: 75, professeur: "Jeanette", salle: "AC", heureDebut: 660, heureFin: 735 },
   { id: "sam-9", jour: "Samedi", nom: "Jazz Adulte Inter", horaire: "12h00-13h30", duree: 90, professeur: "Audrey", salle: "TV", heureDebut: 720, heureFin: 810 },
   { id: "sam-8", jour: "Samedi", nom: "Classique Adulte Debutant", horaire: "12h15-13h30", duree: 75, professeur: "Jeanette", salle: "AC", heureDebut: 735, heureFin: 810 },
   { id: "sam-10", jour: "Samedi", nom: "Classique Adulte Avance", horaire: "13h45-15h15", duree: 90, professeur: "Jeanette", salle: "LDN", heureDebut: 825, heureFin: 915 },
