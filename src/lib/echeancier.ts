@@ -95,15 +95,18 @@ export function calculerEcheancierSansCentimes(
 }
 
 /**
- * Répartit un montant en centimes de manière homogène
+ * Répartit un montant en centimes : versements 2..N en euros entiers, le premier absorbe le reste exact
  * @param montantCentimes - Montant total en centimes
  * @param nombre - Nombre de versements
- * @returns Tableau de montants en centimes
+ * @returns Tableau de montants en centimes (index 0 = premier versement avec les centimes résiduels)
  */
 function repartirHomogeneCentimes(montantCentimes: number, nombre: number): number[] {
-  const base = Math.floor(montantCentimes / nombre);
-  const reste = montantCentimes - base * nombre;
-  return Array.from({ length: nombre }, (_, i) => i < reste ? base + 1 : base);
+  // Versements suivants (2..N) en euros entiers
+  const baseEuros = Math.round(montantCentimes / nombre / 100) * 100; // arrondi à l'euro
+  const totalSuivants = baseEuros * (nombre - 1);
+  // Premier versement = total - somme des suivants (absorbe les centimes)
+  const premier = montantCentimes - totalSuivants;
+  return [premier, ...Array(nombre - 1).fill(baseEuros)];
 }
 
 /**
