@@ -27,77 +27,83 @@ export function calculerEcheancierSansCentimes(
 ): Echeance[] {
   const echeances: Echeance[] = [];
   
-  // Arrondir le montant total à l'euro inférieur
-  const totalArrondi = Math.floor(montantTotal);
-  
+  // Travailler en centimes pour éviter les erreurs de virgule flottante
+  // Le total est réparti exactement, le premier versement absorbe l'arrondi résiduel
+  const totalCentimes = Math.round(montantTotal * 100);
+  const adhesionCentimes = Math.round(adhesion * 100);
+  const licenceCentimes = Math.round(licence * 100);
+
   if (avecPreinscription) {
-    // Avec préinscription : 90€ comme premier paiement (sous 5 jours), puis le reste réparti
-    const montantPreinscription = 90;
-    const montantRestant = totalArrondi - montantPreinscription;
-    
-    // Toujours afficher la préinscription en premier
+    const montantPreinscriptionCentimes = 9000; // 90€
+    const montantRestantCentimes = totalCentimes - montantPreinscriptionCentimes;
+
     echeances.push({
       mois: 'Préinscription (sous 5 jours)',
-      montant: montantPreinscription,
+      montant: montantPreinscriptionCentimes / 100,
       details: 'Adhésion 12€ + Licence 24€ + Acompte cours 54€'
     });
-    
+
     if (nombreVersements === 1) {
-      // Paiement en 1 fois : reste en septembre
-      if (montantRestant > 0) {
+      if (montantRestantCentimes > 0) {
         echeances.push({
-          mois: 'Septembre',
-          montant: montantRestant,
-          details: `Solde cours ${montantRestant}€`
+          mois: getMoisByIndex(0, nombreVersements, moisDepart),
+          montant: montantRestantCentimes / 100,
+          details: `Solde cours ${montantRestantCentimes / 100}€`
         });
       }
     } else {
-      // Répartir le montant restant sur les versements mensuels
-      const versementsRestants = repartirHomogene(montantRestant, nombreVersements);
-      
-      // Ajouter les échéances mensuelles
+      const versements = repartirHomogeneCentimes(montantRestantCentimes, nombreVersements);
       for (let i = 0; i < nombreVersements; i++) {
         echeances.push({
           mois: getMoisByIndex(i, nombreVersements, moisDepart),
-          montant: versementsRestants[i].montant,
-          details: `Cours ${versementsRestants[i].montant}€`
+          montant: versements[i] / 100,
+          details: `Cours ${versements[i] / 100}€`
         });
       }
     }
   } else {
-    // Sans préinscription : premier versement avec adhésion + licence
-    const montantCours = totalArrondi - adhesion - licence;
-    
+    const coursCentimes = totalCentimes - adhesionCentimes - licenceCentimes;
+
     if (nombreVersements === 1) {
-      const nomMois = getMoisByIndex(0, nombreVersements, moisDepart);
-      echeances.push({
-        mois: nomMois,
-        montant: totalArrondi,
-        details: `Adhésion ${adhesion}€ + Licence ${licence}€ + Cours ${montantCours}€`
-      });
-    } else {
-      // Répartir le montant des cours sur les versements
-      const versementsCours = repartirHomogene(montantCours, nombreVersements);
-      
-      // Premier versement = adhésion + licence + première part de cours
       echeances.push({
         mois: getMoisByIndex(0, nombreVersements, moisDepart),
-        montant: adhesion + licence + versementsCours[0].montant,
-        details: `Adhésion ${adhesion}€ + Licence ${licence}€ + Cours ${versementsCours[0].montant}€`
+        montant: totalCentimes / 100,
+        details: `Adhésion ${adhesion}€ + Licence ${licence}€ + Cours ${coursCentimes / 100}€`
       });
-      
-      // Versements suivants = parts de cours uniquement
+    } else {
+      const versementsCours = repartirHomogeneCentimes(coursCentimes, nombreVersements);
+
+      // Premier versement = adhésion + licence + première part de cours
+      const premier = adhesionCentimes + licenceCentimes + versementsCours[0];
+      echeances.push({
+        mois: getMoisByIndex(0, nombreVersements, moisDepart),
+        montant: premier / 100,
+        details: `Adhésion ${adhesion}€ + Licence ${licence}€ + Cours ${versementsCours[0] / 100}€`
+      });
+
       for (let i = 1; i < nombreVersements; i++) {
         echeances.push({
           mois: getMoisByIndex(i, nombreVersements, moisDepart),
-          montant: versementsCours[i].montant,
-          details: `Cours ${versementsCours[i].montant}€`
+          montant: versementsCours[i] / 100,
+          details: `Cours ${versementsCours[i] / 100}€`
         });
       }
     }
   }
-  
+
   return echeances;
+}
+
+/**
+ * Répartit un montant en centimes de manière homogène
+ * @param montantCentimes - Montant total en centimes
+ * @param nombre - Nombre de versements
+ * @returns Tableau de montants en centimes
+ */
+function repartirHomogeneCentimes(montantCentimes: number, nombre: number): number[] {
+  const base = Math.floor(montantCentimes / nombre);
+  const reste = montantCentimes - base * nombre;
+  return Array.from({ length: nombre }, (_, i) => i < reste ? base + 1 : base);
 }
 
 /**
