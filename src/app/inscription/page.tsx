@@ -202,13 +202,14 @@ function InscriptionPageContent() {
     return { totalMinutes, tarifCours, tarifCoursAnnuel, tarifDanseEtudes, adhesion, licenceFFD, totalCours, totalFrais, total, age };
   }, [selectedCourses, formData.tarifReduit, formData.danseEtudesOption, formData.studentBirthDate, prorataActif, periodeActuelle]);
 
-  // Options de versements disponibles selon le montant des cours
+  // Options de versements disponibles selon le montant total
+  // En prorata (arrivée en cours d'année), on limite à 3 fois maximum
   const versementsDisponibles = useMemo(() => {
     const options = ["1"];
-    if (tarifCalcule.tarifCours >= 270) options.push("3");
-    if (tarifCalcule.tarifCours >= 500) options.push("10");
+    if (tarifCalcule.total >= 270) options.push("3");
+    if (!prorataActif && tarifCalcule.total >= 500) options.push("10");
     return options;
-  }, [tarifCalcule.tarifCours]);
+  }, [tarifCalcule.total, prorataActif]);
 
   // Réinitialiser le nombre de versements si l'option n'est plus disponible
   useEffect(() => {
