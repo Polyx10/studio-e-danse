@@ -23,8 +23,8 @@ export const inscriptionSchema = z.object({
   student_postal_code: z.string().regex(/^\d{5}$/, 'Code postal invalide (5 chiffres)').nullable().optional(),
   student_city: z.string().max(100, 'Le nom de la ville est trop long').nullable().optional(),
   student_phone: z.string()
-    .transform(val => val ? val.replace(/[\s\-\.]/g, '') : '')
-    .refine(val => val === '' || /^(\+33|0033|0)[1-9](\d{8})$/.test(val), {
+    .transform(val => val ? val.replace(/[\s\-\.\(\)]/g, '') : '')
+    .refine(val => val === '' || /^(\+\d{7,15}|0[1-9]\d{8})$/.test(val), {
       message: 'Numéro de téléphone invalide'
     })
     .transform(val => val === '' ? null : val)
@@ -35,8 +35,8 @@ export const inscriptionSchema = z.object({
   // Responsables légaux (obligatoires uniquement pour les mineurs)
   responsable1_name: z.union([z.string().max(100, 'Le nom est trop long'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
   responsable1_phone: z.string()
-    .transform(val => val ? val.replace(/[\s\-\.]/g, '') : '')
-    .refine(val => val === '' || /^(\+33|0033|0)[1-9](\d{8})$/.test(val), {
+    .transform(val => val ? val.replace(/[\s\-\.\(\)]/g, '') : '')
+    .refine(val => val === '' || /^(\+\d{7,15}|0[1-9]\d{8})$/.test(val), {
       message: 'Numéro de téléphone invalide'
     })
     .transform(val => val === '' ? null : val)
@@ -48,8 +48,8 @@ export const inscriptionSchema = z.object({
   responsable2_postal_code: z.union([z.string().regex(/^\d{5}$/, 'Code postal invalide (5 chiffres)'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
   responsable2_city: z.union([z.string().max(100, 'Le nom de la ville est trop long'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
   responsable2_phone: z.string()
-    .transform(val => val ? val.replace(/[\s\-\.]/g, '') : '')
-    .refine(val => val === '' || /^(\+33|0033|0)[1-9](\d{8})$/.test(val), {
+    .transform(val => val ? val.replace(/[\s\-\.\(\)]/g, '') : '')
+    .refine(val => val === '' || /^(\+\d{7,15}|0[1-9]\d{8})$/.test(val), {
       message: 'Numéro de téléphone invalide'
     })
     .transform(val => val === '' ? null : val)
@@ -188,16 +188,7 @@ export const inscriptionSchema = z.object({
     }
   }
   
-  // Validation de l'engagement pour paiement échelonné
-  if (data.nombre_versements === '3' || data.nombre_versements === '10') {
-    if (!data.engagement_paiement_echelonne) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Vous devez accepter l\'engagement sur l\'honneur pour un paiement échelonné',
-        path: ['engagement_paiement_echelonne'],
-      });
-    }
-  }
+  // L'engagement pour paiement échelonné est affiché dans l'UI, pas besoin de validation côté serveur
 });
 
 export type InscriptionData = z.infer<typeof inscriptionSchema>;
