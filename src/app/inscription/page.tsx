@@ -224,14 +224,17 @@ function InscriptionPageContent() {
   const echeances = useMemo(() => {
     if (tarifCalcule.total <= 0) return [];
     const nbVersements = parseInt(formData.nombreVersements) || 1;
+    // En prorata, l'échéancier commence au mois actuel ; sinon en septembre (8)
+    const moisDepart = prorataActif ? new Date().getMonth() : 8;
     return calculerEcheancierSansCentimes(
       tarifCalcule.total,
       nbVersements,
       preinscriptionEffective,
       tarifCalcule.adhesion,
-      tarifCalcule.licenceFFD
+      tarifCalcule.licenceFFD,
+      moisDepart
     );
-  }, [tarifCalcule.total, tarifCalcule.adhesion, tarifCalcule.licenceFFD, formData.nombreVersements, preinscriptionEffective]);
+  }, [tarifCalcule.total, tarifCalcule.adhesion, tarifCalcule.licenceFFD, formData.nombreVersements, preinscriptionEffective, prorataActif]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

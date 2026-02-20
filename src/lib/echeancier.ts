@@ -22,7 +22,8 @@ export function calculerEcheancierSansCentimes(
   nombreVersements: number,
   avecPreinscription: boolean = false,
   adhesion: number = 12,
-  licence: number = 24
+  licence: number = 24,
+  moisDepart?: number // 0=Janvier, 8=Septembre (par défaut si non fourni)
 ): Echeance[] {
   const echeances: Echeance[] = [];
   
@@ -57,7 +58,7 @@ export function calculerEcheancierSansCentimes(
       // Ajouter les échéances mensuelles
       for (let i = 0; i < nombreVersements; i++) {
         echeances.push({
-          mois: getMoisByIndex(i, nombreVersements),
+          mois: getMoisByIndex(i, nombreVersements, moisDepart),
           montant: versementsRestants[i].montant,
           details: `Cours ${versementsRestants[i].montant}€`
         });
@@ -68,8 +69,9 @@ export function calculerEcheancierSansCentimes(
     const montantCours = totalArrondi - adhesion - licence;
     
     if (nombreVersements === 1) {
+      const nomMois = getMoisByIndex(0, nombreVersements, moisDepart);
       echeances.push({
-        mois: 'Septembre',
+        mois: nomMois,
         montant: totalArrondi,
         details: `Adhésion ${adhesion}€ + Licence ${licence}€ + Cours ${montantCours}€`
       });
@@ -79,7 +81,7 @@ export function calculerEcheancierSansCentimes(
       
       // Premier versement = adhésion + licence + première part de cours
       echeances.push({
-        mois: getMoisByIndex(0, nombreVersements),
+        mois: getMoisByIndex(0, nombreVersements, moisDepart),
         montant: adhesion + licence + versementsCours[0].montant,
         details: `Adhésion ${adhesion}€ + Licence ${licence}€ + Cours ${versementsCours[0].montant}€`
       });
@@ -87,7 +89,7 @@ export function calculerEcheancierSansCentimes(
       // Versements suivants = parts de cours uniquement
       for (let i = 1; i < nombreVersements; i++) {
         echeances.push({
-          mois: getMoisByIndex(i, nombreVersements),
+          mois: getMoisByIndex(i, nombreVersements, moisDepart),
           montant: versementsCours[i].montant,
           details: `Cours ${versementsCours[i].montant}€`
         });
@@ -126,23 +128,19 @@ function repartirHomogene(montant: number, nombre: number): Echeance[] {
 }
 
 /**
- * Retourne le nom du mois selon l'index et le nombre de versements
+ * Retourne le nom du mois selon l'index, le nombre de versements et le mois de départ
  * @param index - Index du versement (0-based)
  * @param nombreVersements - Nombre total de versements (3 ou 10)
+ * @param moisDepart - Mois de départ (0=Janvier ... 11=Décembre), défaut=8 (Septembre)
  * @returns Nom du mois
  */
-function getMoisByIndex(index: number, nombreVersements: number): string {
-  if (nombreVersements === 3) {
-    const mois = ['Septembre', 'Octobre', 'Novembre'];
-    return mois[index] || `Mois ${index + 1}`;
-  } else if (nombreVersements === 10) {
-    const mois = [
-      'Septembre', 'Octobre', 'Novembre', 'Décembre',
-      'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin'
-    ];
-    return mois[index] || `Mois ${index + 1}`;
-  }
-  return `Versement ${index + 1}`;
+function getMoisByIndex(index: number, nombreVersements: number, moisDepart: number = 8): string {
+  const nomsMois = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+  ];
+  const moisReel = (moisDepart + index) % 12;
+  return nomsMois[moisReel];
 }
 
 /**
