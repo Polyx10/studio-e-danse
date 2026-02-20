@@ -51,7 +51,7 @@ export async function POST(request: Request) {
           danse_etudes_option, concours_on_stage, concours_classes,
           participation_spectacle, nombre_costumes, type_cours,
           mode_paiement, nombre_versements, reglement_accepte, droit_image,
-          signature_name, adherent_precedent, preinscription_payee, montant_preinscription
+          signature_name, adherent_precedent, preinscription_payee, montant_preinscription, saison
         ) VALUES (
           ${validatedData.student_last_name + ' ' + validatedData.student_first_name}, ${validatedData.student_last_name}, ${validatedData.student_first_name}, ${validatedData.student_gender}, ${validatedData.student_birth_date}, ${validatedData.student_address},
           ${validatedData.student_postal_code}, ${validatedData.student_city}, ${validatedData.student_phone}, ${validatedData.student_email},
@@ -63,7 +63,8 @@ export async function POST(request: Request) {
           ${validatedData.participation_spectacle}, ${validatedData.nombre_costumes}, ${validatedData.type_cours},
           ${validatedData.mode_paiement ? JSON.stringify(validatedData.mode_paiement) : null}, ${validatedData.nombre_versements}, ${validatedData.accept_rules}, ${validatedData.droit_image},
           ${validatedData.signature_name},
-          ${validatedData.adherent_precedent}, ${validatedData.preinscription_payee || false}, ${validatedData.preinscription_payee ? 90 : 0}
+          ${validatedData.adherent_precedent}, ${validatedData.preinscription_payee || false}, ${validatedData.preinscription_payee ? 90 : 0},
+          ${(() => { const now = new Date(); const year = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1; return `${year}-${year + 1}`; })()}
         )
         RETURNING *
       `;
