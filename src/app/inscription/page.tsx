@@ -127,6 +127,7 @@ function InscriptionPageContent() {
     responsable2Email: "",
     tarifReduit: false,
     danseEtudesOption: "0",
+    danseEtudesJour: "mardi",
     concoursOnStage: false,
     concoursClasses: false,
     participationSpectacle: "oui",
@@ -241,6 +242,18 @@ function InscriptionPageContent() {
     setIsSubmitting(true);
     
     try {
+      // Ajouter automatiquement le cours danse-études sélectionné
+      let coursesFinaux = [...selectedCourses];
+      if (formData.danseEtudesOption === "1") {
+        const coursId = formData.danseEtudesJour === "mardi" ? "mar-1" : "ven-2";
+        if (!coursesFinaux.includes(coursId)) {
+          coursesFinaux.push(coursId);
+        }
+      } else if (formData.danseEtudesOption === "2") {
+        if (!coursesFinaux.includes("mar-1")) coursesFinaux.push("mar-1");
+        if (!coursesFinaux.includes("ven-2")) coursesFinaux.push("ven-2");
+      }
+
       const inscriptionData = {
         adherent_precedent: formData.adherentPrecedent,
         student_last_name: formData.studentLastName,
@@ -262,7 +275,7 @@ function InscriptionPageContent() {
         responsable2_city: formData.responsable2City || null,
         responsable2_phone: formData.responsable2Phone || null,
         responsable2_email: formData.responsable2Email || null,
-        selected_courses: selectedCourses,
+        selected_courses: coursesFinaux,
         tarif_reduit: formData.tarifReduit,
         danse_etudes_option: formData.danseEtudesOption,
         concours_on_stage: formData.concoursOnStage,
@@ -767,6 +780,15 @@ function InscriptionPageContent() {
                               <div className="flex items-center space-x-2"><RadioGroupItem value="1" id="de1" /><Label htmlFor="de1">1 cours - 350 €</Label></div>
                               <div className="flex items-center space-x-2"><RadioGroupItem value="2" id="de2" /><Label htmlFor="de2">2 cours - 700 €</Label></div>
                             </RadioGroup>
+                            {formData.danseEtudesOption === "1" && (
+                              <div className="mt-4 p-3 bg-white rounded border border-purple-300">
+                                <Label className="font-semibold mb-2 block text-sm">Choisissez le jour du cours :</Label>
+                                <RadioGroup value={formData.danseEtudesJour} onValueChange={(v: string) => setFormData(p => ({ ...p, danseEtudesJour: v }))} className="space-y-2">
+                                  <div className="flex items-center space-x-2"><RadioGroupItem value="mardi" id="dej-mar" /><Label htmlFor="dej-mar">Mardi 15h45-17h30</Label></div>
+                                  <div className="flex items-center space-x-2"><RadioGroupItem value="vendredi" id="dej-ven" /><Label htmlFor="dej-ven">Vendredi 15h45-17h30</Label></div>
+                                </RadioGroup>
+                              </div>
+                            )}
                           </div>
                           <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                             <Label className="font-semibold mb-3 block">Concours</Label>

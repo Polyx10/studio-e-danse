@@ -5,6 +5,7 @@ import { planningCours } from '@/lib/planning-data';
 import { inscriptionSchema } from '@/lib/validation';
 import { ZodError } from 'zod';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { genererPresencesAutomatiques } from '@/lib/presences-auto';
 
 export async function POST(request: Request) {
   try {
@@ -68,6 +69,22 @@ export async function POST(request: Request) {
         )
         RETURNING *
       `;
+
+      // Générer automatiquement les présences pour tous les cours sélectionnés
+      if (result.length > 0 && validatedData.selected_courses.length > 0) {
+        const inscriptionId = result[0].id;
+        const saison = result[0].saison;
+        try {
+          const presencesResult = await genererPresencesAutomatiques(
+            inscriptionId,
+            validatedData.selected_courses,
+            saison
+          );
+          console.log(`✅ Présences générées: ${presencesResult.created} créées, ${presencesResult.errors} erreurs`);
+        } catch (presencesError: any) {
+          console.error('⚠️ Erreur génération présences (non bloquant):', presencesError.message);
+        }
+      }
     } catch (sqlError: any) {
       console.error('❌ ERREUR SQL DÉTAILLÉE:', {
         message: sqlError.message,
