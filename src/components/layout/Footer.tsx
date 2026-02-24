@@ -10,7 +10,7 @@ export function Footer() {
           {/* Logo & Description */}
           <div className="space-y-4">
             <Image
-              src="/images/logo.png"
+              src="/images/logo-hd.png"
               alt="Studio e - École de danse"
               width={150}
               height={50}
