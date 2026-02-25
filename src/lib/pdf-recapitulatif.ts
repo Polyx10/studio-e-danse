@@ -23,9 +23,13 @@ interface DonneesInscription {
   responsable1Nom: string;
   responsable1Tel: string;
   responsable1Email: string;
+  responsable1Adresse?: string;
+  responsable1CodePostal?: string;
+  responsable1Ville?: string;
   responsable2Nom?: string;
   responsable2Tel?: string;
   responsable2Email?: string;
+  responsable2Adresse?: string;
   
   // Cours
   coursSelectionnes: string[];
@@ -161,6 +165,10 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
   if (donnees.responsable1Nom) {
     drawField(doc, 'Responsable 1 : ', donnees.responsable1Nom, mg + 2, y, valResp);
     y += 5;
+    if (donnees.responsable1Adresse) {
+      drawField(doc, 'Adresse : ', `${donnees.responsable1Adresse}, ${donnees.responsable1CodePostal || ''} ${donnees.responsable1Ville || ''}`.trim(), mg + 8, y, mg + 22);
+      y += 5;
+    }
     drawField(doc, 'Tél : ', donnees.responsable1Tel, mg + 8, y, mg + 20);
     drawField(doc, 'Email : ', donnees.responsable1Email, col2x, y, col2x + 16);
     y += 6;
@@ -169,6 +177,10 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
   if (donnees.responsable2Nom) {
     drawField(doc, 'Responsable 2 : ', donnees.responsable2Nom, mg + 2, y, valResp);
     y += 5;
+    if (donnees.responsable2Adresse) {
+      drawField(doc, 'Adresse : ', donnees.responsable2Adresse, mg + 8, y, mg + 22);
+      y += 5;
+    }
     drawField(doc, 'Tél : ', donnees.responsable2Tel || 'N/A', mg + 8, y, mg + 20);
     drawField(doc, 'Email : ', donnees.responsable2Email || 'N/A', col2x, y, col2x + 16);
     y += 6;

@@ -306,6 +306,10 @@ function InscriptionPageContent() {
 
       if (!response.ok) {
         console.error('Erreur API:', result);
+        if (result.details) {
+          const messages = result.details.map((d: { field: string; message: string }) => `• ${d.field} : ${d.message}`).join('\n');
+          throw new Error(`Données invalides :\n${messages}`);
+        }
         throw new Error(result.error || 'Erreur lors de l\'enregistrement');
       }
       
@@ -1071,9 +1075,13 @@ function InscriptionPageContent() {
                                   responsable1Nom: formData.responsable1Name,
                                   responsable1Tel: formData.responsable1Phone,
                                   responsable1Email: formData.responsable1Email,
+                                  responsable1Adresse: formData.studentAddress || undefined,
+                                  responsable1CodePostal: formData.studentPostalCode || undefined,
+                                  responsable1Ville: formData.studentCity || undefined,
                                   responsable2Nom: formData.responsable2Name || undefined,
                                   responsable2Tel: formData.responsable2Phone || undefined,
                                   responsable2Email: formData.responsable2Email || undefined,
+                                  responsable2Adresse: formData.responsable2Address || undefined,
                                   coursSelectionnes: coursSelectionnesNoms,
                                   tarifCours: tarifCalcule.tarifCours,
                                   tarifDanseEtudes: tarifCalcule.tarifDanseEtudes,
