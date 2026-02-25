@@ -38,7 +38,39 @@ export async function POST(request: Request) {
     
     // Validation des données avec Zod
     const validatedData = inscriptionSchema.parse(body);
-    
+
+    // Déterminer la saison courante
+    const now = new Date();
+    const saisonCourante = now.getMonth() >= 6
+      ? `${now.getFullYear()}-${now.getFullYear() + 1}`
+      : `${now.getFullYear() - 1}-${now.getFullYear()}`;
+
+    // Vérification des doublons sur la saison en cours (même email ou même téléphone)
+    const emailEleve = validatedData.student_email || null;
+    const telEleve = validatedData.student_phone || null;
+    const emailResp1 = validatedData.responsable1_email || null;
+    const telResp1 = validatedData.responsable1_phone || null;
+
+    const doublon = await sql`
+      SELECT id, student_last_name, student_first_name FROM inscriptions
+      WHERE saison = ${saisonCourante}
+        AND statut != 'annule'
+        AND (
+          (${emailEleve}::text IS NOT NULL AND (student_email = ${emailEleve} OR responsable1_email = ${emailEleve}))
+          OR (${telEleve}::text IS NOT NULL AND (student_phone = ${telEleve} OR responsable1_phone = ${telEleve}))
+          OR (${emailResp1}::text IS NOT NULL AND (student_email = ${emailResp1} OR responsable1_email = ${emailResp1}))
+          OR (${telResp1}::text IS NOT NULL AND (student_phone = ${telResp1} OR responsable1_phone = ${telResp1}))
+        )
+      LIMIT 1
+    `;
+
+    if (doublon.length > 0) {
+      return NextResponse.json(
+        { error: 'Une inscription existe déjà pour cette saison avec cette adresse email ou ce numéro de téléphone. Veuillez contacter le secrétariat si vous souhaitez modifier votre inscription.' },
+        { status: 409 }
+      );
+    }
+
     // Insertion dans Neon Database
     let result;
     try {
