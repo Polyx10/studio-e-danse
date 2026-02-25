@@ -166,7 +166,7 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
     drawField(doc, 'Responsable 1 : ', donnees.responsable1Nom, mg + 2, y, valResp);
     y += 5;
     if (donnees.responsable1Adresse) {
-      drawField(doc, 'Adresse : ', `${donnees.responsable1Adresse}, ${donnees.responsable1CodePostal || ''} ${donnees.responsable1Ville || ''}`.trim(), mg + 8, y, mg + 22);
+      drawField(doc, 'Adresse : ', `${donnees.responsable1Adresse}, ${donnees.responsable1CodePostal || ''} ${donnees.responsable1Ville || ''}`.trim(), mg + 8, y, mg + 23);
       y += 5;
     }
     drawField(doc, 'Tél : ', donnees.responsable1Tel, mg + 8, y, mg + 20);
@@ -178,7 +178,7 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
     drawField(doc, 'Responsable 2 : ', donnees.responsable2Nom, mg + 2, y, valResp);
     y += 5;
     if (donnees.responsable2Adresse) {
-      drawField(doc, 'Adresse : ', donnees.responsable2Adresse, mg + 8, y, mg + 22);
+      drawField(doc, 'Adresse : ', donnees.responsable2Adresse, mg + 8, y, mg + 23);
       y += 5;
     }
     drawField(doc, 'Tél : ', donnees.responsable2Tel || 'N/A', mg + 8, y, mg + 20);
