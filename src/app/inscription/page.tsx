@@ -158,8 +158,23 @@ function InscriptionPageContent() {
   }, [requiresCertificat]);
 
   const toggleCourse = (courseId: string) => {
+    const recommandes = getCoursRecommandes(formData.studentBirthDate);
+    const coursInfo = planningCours.find(c => c.id === courseId);
+    const isSpecial = coursInfo?.isDanseEtudes || coursInfo?.isConcours;
+    const isRecommande = recommandes.includes(courseId);
+    if (!isSpecial && !isRecommande) return; // bloquer les cours hors niveau
     setSelectedCourses(prev => prev.includes(courseId) ? prev.filter(id => id !== courseId) : [...prev, courseId]);
   };
+
+  // Purger les cours hors niveau quand la date de naissance change
+  useEffect(() => {
+    if (!formData.studentBirthDate) return;
+    const recommandes = getCoursRecommandes(formData.studentBirthDate);
+    setSelectedCourses(prev => prev.filter(id => {
+      const c = planningCours.find(x => x.id === id);
+      return c?.isDanseEtudes || c?.isConcours || recommandes.includes(id);
+    }));
+  }, [formData.studentBirthDate]);
 
   // Déterminer si le prorata s'applique
   const prorataActif = useMemo(() => {
