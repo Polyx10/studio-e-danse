@@ -128,6 +128,53 @@ export async function POST(request: Request) {
       throw sqlError;
     }
     
+    // Basculement automatique du tarif famille si nécessaire
+    if (result.length > 0 && validatedData.tarif_famille_bascule_id) {
+      const idABascule = validatedData.tarif_famille_bascule_id;
+      const nouvelInscritId = result[0].id;
+      const nouvelInscritNom = `${validatedData.student_last_name} ${validatedData.student_first_name}`;
+      try {
+        // Récupérer les données actuelles de l'inscrit à basculer pour calculer le nouveau tarif
+        const inscritExistant = await sql`
+          SELECT id, student_name, tarif_cours, adhesion, licence_ffd, tarif_total, tarif_reduit
+          FROM inscriptions WHERE id = ${idABascule}
+        `;
+        if (inscritExistant.length > 0) {
+          const existant = inscritExistant[0];
+          const tarifCoursActuel = parseFloat(existant.tarif_cours as string);
+          // Recalculer tarif_cours en mode réduit (50% du tarif plein)
+          const tarifCoursReduit = parseFloat((tarifCoursActuel * 0.5).toFixed(2));
+          const nouveauTotal = parseFloat((tarifCoursReduit + parseFloat(existant.adhesion as string) + parseFloat(existant.licence_ffd as string)).toFixed(2));
+          const delta = parseFloat((parseFloat(existant.tarif_total as string) - nouveauTotal).toFixed(2));
+
+          await sql`
+            UPDATE inscriptions
+            SET tarif_reduit = true,
+                tarif_cours = ${tarifCoursReduit},
+                tarif_total = ${nouveauTotal},
+                updated_at = NOW()
+            WHERE id = ${idABascule}
+          `;
+
+          // Créer une alerte admin
+          await sql`
+            INSERT INTO notifications_admin (type, message, inscription_id, inscription_concernee_id, delta, created_at)
+            VALUES (
+              'bascule_tarif_famille',
+              ${`Tarif de ${existant.student_name} mis à jour automatiquement (tarif réduit) suite à l'inscription de ${nouvelInscritNom} avec plus d'heures de cours.`},
+              ${nouvelInscritId},
+              ${idABascule},
+              ${delta},
+              NOW()
+            )
+          `;
+          console.log(`✅ Basculement famille : ${existant.student_name} → tarif réduit (delta: ${delta}€)`);
+        }
+      } catch (basculeError: unknown) {
+        console.error('⚠️ Erreur basculement famille (non bloquant):', basculeError instanceof Error ? basculeError.message : basculeError);
+      }
+    }
+
     // Envoyer l'email de confirmation
     try {
       const cours = validatedData.selected_courses

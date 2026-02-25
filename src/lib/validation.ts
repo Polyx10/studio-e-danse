@@ -62,6 +62,7 @@ export const inscriptionSchema = z.object({
   
   // Tarification
   tarif_reduit: z.boolean(),
+  tarif_famille_bascule_id: z.string().uuid().optional().nullable(),
   rattachement_famille: z.union([z.string().max(200, 'Le nom est trop long'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
   tarif_cours: z.number().min(0, 'Le tarif ne peut pas être négatif').max(10000, 'Tarif invalide'),
   adhesion: z.number().min(0, 'L\'adhésion ne peut pas être négative').max(1000, 'Adhésion invalide'),

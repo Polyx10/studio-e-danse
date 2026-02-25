@@ -84,6 +84,13 @@ function InscriptionPageContent() {
   const [pdfTelecharge, setPdfTelecharge] = useState(false);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [coursListeAttente, setCoursListeAttente] = useState<CoursPlanning | null>(null);
+
+  // Détection famille
+  const [familleDetectee, setFamilleDetectee] = useState<{ membres: { id: string; nom: string; minutes: number }[]; membrePrincipalNom: string | null } | null>(null);
+  const [familleBasculerId, setFamilleBasculerId] = useState<string | null>(null);
+  const [familleBasculerNom, setFamilleBasculerNom] = useState<string | null>(null);
+  const [familleMinutesNouvel, setFamilleMinutesNouvel] = useState<number>(0);
+  const [familleDetectionEnCours, setFamilleDetectionEnCours] = useState(false);
   
   // Réinitialiser le formulaire à l'étape 1 quand on clique sur "S'inscrire" dans le header
   useEffect(() => {
@@ -175,6 +182,86 @@ function InscriptionPageContent() {
       return c?.isDanseEtudes || c?.isConcours || recommandes.includes(id);
     }));
   }, [formData.studentBirthDate]);
+
+  // 1er temps : détecter la famille dès que les coordonnées changent
+  useEffect(() => {
+    const emails = [formData.studentEmail, formData.responsable1Email, formData.responsable2Email].filter(Boolean);
+    const phones = [formData.studentPhone, formData.responsable1Phone, formData.responsable2Phone].filter(Boolean);
+    if (emails.length === 0 && phones.length === 0) {
+      setFamilleDetectee(null);
+      return;
+    }
+    const controller = new AbortController();
+    setFamilleDetectionEnCours(true);
+    fetch('/api/detect-famille', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        student_email: formData.studentEmail || null,
+        student_phone: formData.studentPhone || null,
+        responsable1_email: formData.responsable1Email || null,
+        responsable1_phone: formData.responsable1Phone || null,
+        responsable2_email: formData.responsable2Email || null,
+        responsable2_phone: formData.responsable2Phone || null,
+        selected_courses: selectedCourses,
+      }),
+      signal: controller.signal,
+    })
+      .then(r => r.json())
+      .then(data => {
+        setFamilleDetectee(data.famille || null);
+        // Appliquer le tarif automatique si famille détectée
+        if (data.famille && typeof data.tarifReduitNouvel === 'boolean') {
+          setFormData(prev => ({ ...prev, tarifReduit: data.tarifReduitNouvel }));
+        }
+        if (data.basculementNecessaire && data.membreABascuer) {
+          setFamilleBasculerId(data.membreABascuer.id);
+          setFamilleBasculerNom(data.membreABascuer.nom);
+        } else {
+          setFamilleBasculerId(null);
+          setFamilleBasculerNom(null);
+        }
+        setFamilleMinutesNouvel(data.minutesNouvel || 0);
+      })
+      .catch(() => {})
+      .finally(() => setFamilleDetectionEnCours(false));
+    return () => controller.abort();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.studentEmail, formData.studentPhone, formData.responsable1Email, formData.responsable1Phone, formData.responsable2Email, formData.responsable2Phone]);
+
+  // 2ème temps : recalculer le tarif quand les cours changent
+  useEffect(() => {
+    if (!familleDetectee) return;
+    fetch('/api/detect-famille', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        student_email: formData.studentEmail || null,
+        student_phone: formData.studentPhone || null,
+        responsable1_email: formData.responsable1Email || null,
+        responsable1_phone: formData.responsable1Phone || null,
+        responsable2_email: formData.responsable2Email || null,
+        responsable2_phone: formData.responsable2Phone || null,
+        selected_courses: selectedCourses,
+      }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.famille && typeof data.tarifReduitNouvel === 'boolean') {
+          setFormData(prev => ({ ...prev, tarifReduit: data.tarifReduitNouvel }));
+        }
+        if (data.basculementNecessaire && data.membreABascuer) {
+          setFamilleBasculerId(data.membreABascuer.id);
+          setFamilleBasculerNom(data.membreABascuer.nom);
+        } else {
+          setFamilleBasculerId(null);
+          setFamilleBasculerNom(null);
+        }
+        setFamilleMinutesNouvel(data.minutesNouvel || 0);
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCourses]);
 
   // Déterminer si le prorata s'applique
   const prorataActif = useMemo(() => {
@@ -307,6 +394,7 @@ function InscriptionPageContent() {
         tarif_cours: tarifCalcule.totalCours,
         adhesion: tarifCalcule.adhesion,
         licence_ffd: tarifCalcule.licenceFFD,
+        tarif_famille_bascule_id: familleBasculerId || null,
       };
 
       const response = await fetch('/api/submit-inscription', {
@@ -476,6 +564,10 @@ function InscriptionPageContent() {
                     <Card className="border-0 shadow-lg">
                       <CardHeader><CardTitle>Informations de l&apos;élève</CardTitle></CardHeader>
                       <CardContent className="space-y-6">
+                        <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                          <p className="text-sm text-blue-800">Si plusieurs membres de votre famille s&apos;inscrivent, le tarif plein sera automatiquement attribué à celui qui a le plus d&apos;heures de cours. Vous n&apos;avez pas besoin de vous en préoccuper.</p>
+                        </div>
                         <div className="flex items-center gap-4">
                           <Checkbox id="adherentPrecedent" checked={formData.adherentPrecedent} onCheckedChange={(c) => handleCheckboxChange("adherentPrecedent", c as boolean)} />
                           <Label htmlFor="adherentPrecedent">Adhérent STUDIO e saison 2024/2025</Label>
@@ -684,13 +776,40 @@ function InscriptionPageContent() {
                     <Card className="border-0 shadow-lg">
                       <CardHeader><CardTitle>Choix des cours</CardTitle></CardHeader>
                       <CardContent className="space-y-6">
-                        <div className="flex items-center gap-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                          <Checkbox id="tarifReduit" checked={formData.tarifReduit} onCheckedChange={(c) => handleCheckboxChange("tarifReduit", c as boolean)} />
-                          <div>
-                            <Label htmlFor="tarifReduit" className="font-semibold">Tarif réduit</Label>
-                            <p className="text-sm text-gray-600">Si un autre membre de la famille est déjà inscrit au tarif plein</p>
+                        {familleDetectee ? (
+                          <div className="p-4 rounded-lg border-2 border-[#F9CA24] bg-yellow-50 space-y-2">
+                            <div className="flex items-center gap-2 font-semibold text-gray-800">
+                              <Users className="h-5 w-5 text-[#F9CA24]" />
+                              Famille détectée
+                              {familleDetectionEnCours && <span className="text-xs text-gray-500 font-normal ml-1">(mise à jour…)</span>}
+                            </div>
+                            <p className="text-sm text-gray-700">
+                              Membre(s) déjà inscrit(s) cette saison :{" "}
+                              <strong>{familleDetectee.membres.map(m => m.nom).join(', ')}</strong>
+                            </p>
+                            {selectedCourses.length > 0 ? (
+                              formData.tarifReduit ? (
+                                <p className="text-sm text-green-700 font-medium">✓ Tarif réduit appliqué automatiquement — {familleDetectee.membrePrincipalNom} a plus d&apos;heures de cours.</p>
+                              ) : (
+                                familleBasculerNom ? (
+                                  <p className="text-sm text-amber-700 font-medium">⚠ Vous avez plus d&apos;heures que {familleBasculerNom} — tarif plein appliqué pour vous, {familleBasculerNom} passera en tarif réduit automatiquement.</p>
+                                ) : (
+                                  <p className="text-sm text-gray-700 font-medium">✓ Tarif plein appliqué — vous avez le plus d&apos;heures de cours dans la famille.</p>
+                                )
+                              )
+                            ) : (
+                              <p className="text-sm text-gray-500">Sélectionnez vos cours pour que le tarif soit calculé automatiquement.</p>
+                            )}
                           </div>
-                        </div>
+                        ) : (
+                          <div className="flex items-center gap-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                            <Checkbox id="tarifReduit" checked={formData.tarifReduit} onCheckedChange={(c) => handleCheckboxChange("tarifReduit", c as boolean)} />
+                            <div>
+                              <Label htmlFor="tarifReduit" className="font-semibold">Tarif réduit</Label>
+                              <p className="text-sm text-gray-600">Si un autre membre de la famille est déjà inscrit au tarif plein</p>
+                            </div>
+                          </div>
+                        )}
 
                         <div className="flex flex-wrap gap-2 p-3 bg-gray-100 rounded-lg">
                           <span className="text-sm font-medium mr-2">Professeurs :</span>
