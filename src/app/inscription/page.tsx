@@ -91,6 +91,8 @@ function InscriptionPageContent() {
   const [familleBasculerNom, setFamilleBasculerNom] = useState<string | null>(null);
   const [familleMinutesNouvel, setFamilleMinutesNouvel] = useState<number>(0);
   const [familleDetectionEnCours, setFamilleDetectionEnCours] = useState(false);
+  // Capturé au moment du submit pour le PDF (familleDetectee peut être null après setIsSubmitted)
+  const [famillePourPDF, setFamillePourPDF] = useState<string | undefined>(undefined);
   
   // Réinitialiser le formulaire à l'étape 1 quand on clique sur "S'inscrire" dans le header
   useEffect(() => {
@@ -416,6 +418,11 @@ function InscriptionPageContent() {
       
       console.log('Inscription réussie!', result);
       
+      // Capturer les noms famille pour le PDF avant réinitialisation des states
+      if (familleDetectee && familleDetectee.membres.length > 0) {
+        setFamillePourPDF(familleDetectee.membres.map(m => m.nom).join(', '));
+      }
+
       // Incrémenter les quotas pour les cours sélectionnés
       try {
         await Promise.all(
@@ -1221,7 +1228,7 @@ function InscriptionPageContent() {
                                   licenceFFD: tarifCalcule.licenceFFD,
                                   totalGeneral: tarifCalcule.total,
                                   tarifReduit: formData.tarifReduit,
-                                  membreFamille: familleDetectee ? familleDetectee.membres.map(m => m.nom).join(', ') : undefined,
+                                  membreFamille: famillePourPDF,
                                   danseEtudes: formData.danseEtudesOption,
                                   participationSpectacle: formData.participationSpectacle,
                                   nombreCostumes: formData.nombreCostumes,

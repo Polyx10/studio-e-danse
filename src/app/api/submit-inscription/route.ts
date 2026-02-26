@@ -131,6 +131,7 @@ export async function POST(request: Request) {
         const telResp1 = validatedData.responsable1_phone || null;
 
         // Chercher tous les membres de la même famille déjà inscrits cette saison
+        console.log(`[famille] Recherche pour nouvelId=${nouvelId}, saison=${saisonCourante}, emailEleve=${emailEleve}, telEleve=${telEleve}, emailResp1=${emailResp1}, telResp1=${telResp1}`);
         const membresFamille = await sql`
           SELECT id, student_name, selected_courses, tarif_reduit, tarif_cours, adhesion, licence_ffd, tarif_total
           FROM inscriptions
@@ -144,6 +145,7 @@ export async function POST(request: Request) {
               OR (${telResp1}::text IS NOT NULL AND (student_phone = ${telResp1} OR responsable1_phone = ${telResp1}))
             )
         `;
+        console.log(`[famille] Membres trouvés : ${membresFamille.length}`, membresFamille.map((m: Record<string, unknown>) => m.student_name));
 
         if (membresFamille.length > 0) {
           // Calculer les minutes du nouvel inscrit
@@ -178,6 +180,7 @@ export async function POST(request: Request) {
             .map((id: string) => { const c = planningCours.find(p => p.id === id); return c ? `${c.nom} (${c.jour} ${c.horaire})` : id; })
             .join(', ');
 
+          console.log(`[famille] minutesNouvel=${minutesNouvel}, maxMinutesExistants=${maxMinutesExistants}`);
           if (minutesNouvel > maxMinutesExistants) {
             // Le nouvel inscrit a plus d'heures → le membre avec le max actuel doit passer en réduit
             const membreABascule = membresAvecMinutes.find(m => m.minutes === maxMinutesExistants)!;
