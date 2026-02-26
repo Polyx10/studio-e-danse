@@ -177,6 +177,50 @@ export async function POST(request: Request) {
       }
     }
 
+    // Notification tarif réduit direct (inscrit avec moins d'heures qu'un membre existant)
+    if (result.length > 0 && validatedData.tarif_reduit && !validatedData.tarif_famille_bascule_id) {
+      try {
+        const saisonCourante2 = (() => { const now = new Date(); const year = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1; return `${year}-${year + 1}`; })();
+        const emailEleve = validatedData.student_email || null;
+        const telEleve = validatedData.student_phone || null;
+        const emailResp1 = validatedData.responsable1_email || null;
+        const telResp1 = validatedData.responsable1_phone || null;
+        const membresFamille = await sql`
+          SELECT id, student_name FROM inscriptions
+          WHERE saison = ${saisonCourante2}
+            AND statut != 'annule'
+            AND id != ${result[0].id}
+            AND (
+              (${emailEleve}::text IS NOT NULL AND (student_email = ${emailEleve} OR responsable1_email = ${emailEleve}))
+              OR (${telEleve}::text IS NOT NULL AND (student_phone = ${telEleve} OR responsable1_phone = ${telEleve}))
+              OR (${emailResp1}::text IS NOT NULL AND (student_email = ${emailResp1} OR responsable1_email = ${emailResp1}))
+              OR (${telResp1}::text IS NOT NULL AND (student_phone = ${telResp1} OR responsable1_phone = ${telResp1}))
+            )
+        `;
+        if (membresFamille.length > 0) {
+          const nouvelInscritNom2 = `${validatedData.student_last_name} ${validatedData.student_first_name}`;
+          const coursNouvelInscrit2 = validatedData.selected_courses
+            .map((id: string) => { const c = planningCours.find(p => p.id === id); return c ? `${c.nom} (${c.jour} ${c.horaire})` : id; })
+            .join(', ');
+          const nomsMembres = membresFamille.map((m: Record<string, unknown>) => m.student_name as string).join(', ');
+          await sql`
+            INSERT INTO notifications_admin (type, message, inscription_id, inscription_concernee_id, delta, created_at)
+            VALUES (
+              'tarif_reduit_famille',
+              ${`FRATRIE — ${nouvelInscritNom2} a été inscrit(e) en tarif réduit (${coursNouvelInscrit2}). Membre(s) de la même famille : ${nomsMembres}. Vérifier que le tarif plein est bien appliqué au membre ayant le plus d'heures.`},
+              ${result[0].id},
+              ${membresFamille[0].id},
+              null,
+              NOW()
+            )
+          `;
+          console.log(`ℹ️ Notification tarif réduit direct famille : ${nouvelInscritNom2}`);
+        }
+      } catch (notifError: unknown) {
+        console.error('⚠️ Erreur notification tarif réduit famille (non bloquant):', notifError instanceof Error ? notifError.message : notifError);
+      }
+    }
+
     // Envoyer l'email de confirmation
     try {
       const cours = validatedData.selected_courses
