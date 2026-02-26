@@ -183,12 +183,14 @@ function InscriptionPageContent() {
     }));
   }, [formData.studentBirthDate]);
 
-  // 1er temps : détecter la famille dès que les coordonnées changent
+  // 1er temps : détecter la présence de famille dès que les coordonnées changent (sans cours)
   useEffect(() => {
     const emails = [formData.studentEmail, formData.responsable1Email, formData.responsable2Email].filter(Boolean);
     const phones = [formData.studentPhone, formData.responsable1Phone, formData.responsable2Phone].filter(Boolean);
     if (emails.length === 0 && phones.length === 0) {
       setFamilleDetectee(null);
+      setFamilleBasculerId(null);
+      setFamilleBasculerNom(null);
       return;
     }
     const controller = new AbortController();
@@ -203,25 +205,13 @@ function InscriptionPageContent() {
         responsable1_phone: formData.responsable1Phone || null,
         responsable2_email: formData.responsable2Email || null,
         responsable2_phone: formData.responsable2Phone || null,
-        selected_courses: selectedCourses,
+        selected_courses: [],
       }),
       signal: controller.signal,
     })
       .then(r => r.json())
       .then(data => {
         setFamilleDetectee(data.famille || null);
-        // Appliquer le tarif automatique si famille détectée
-        if (data.famille && typeof data.tarifReduitNouvel === 'boolean') {
-          setFormData(prev => ({ ...prev, tarifReduit: data.tarifReduitNouvel }));
-        }
-        if (data.basculementNecessaire && data.membreABascuer) {
-          setFamilleBasculerId(data.membreABascuer.id);
-          setFamilleBasculerNom(data.membreABascuer.nom);
-        } else {
-          setFamilleBasculerId(null);
-          setFamilleBasculerNom(null);
-        }
-        setFamilleMinutesNouvel(data.minutesNouvel || 0);
       })
       .catch(() => {})
       .finally(() => setFamilleDetectionEnCours(false));
@@ -229,9 +219,16 @@ function InscriptionPageContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.studentEmail, formData.studentPhone, formData.responsable1Email, formData.responsable1Phone, formData.responsable2Email, formData.responsable2Phone]);
 
-  // 2ème temps : recalculer le tarif quand les cours changent
+  // 2ème temps : recalculer le tarif quand les cours changent OU quand la famille vient d'être détectée
   useEffect(() => {
-    if (!familleDetectee) return;
+    const emails = [formData.studentEmail, formData.responsable1Email, formData.responsable2Email].filter(Boolean);
+    const phones = [formData.studentPhone, formData.responsable1Phone, formData.responsable2Phone].filter(Boolean);
+    if (emails.length === 0 && phones.length === 0) return;
+    if (selectedCourses.length === 0) {
+      setFamilleBasculerId(null);
+      setFamilleBasculerNom(null);
+      return;
+    }
     fetch('/api/detect-famille', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -247,6 +244,7 @@ function InscriptionPageContent() {
     })
       .then(r => r.json())
       .then(data => {
+        setFamilleDetectee(data.famille || null);
         if (data.famille && typeof data.tarifReduitNouvel === 'boolean') {
           setFormData(prev => ({ ...prev, tarifReduit: data.tarifReduitNouvel }));
         }
@@ -261,7 +259,7 @@ function InscriptionPageContent() {
       })
       .catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCourses]);
+  }, [selectedCourses, formData.studentEmail, formData.studentPhone, formData.responsable1Email, formData.responsable1Phone, formData.responsable2Email, formData.responsable2Phone]);
 
   // Déterminer si le prorata s'applique
   const prorataActif = useMemo(() => {
