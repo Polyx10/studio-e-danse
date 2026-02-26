@@ -148,12 +148,22 @@ export async function POST(request: Request) {
             WHERE id = ${idABascule}
           `;
 
-          // Créer une alerte admin
+          // Détail des cours de la nouvelle inscrite
+          const coursNouvelInscrit = validatedData.selected_courses
+            .map((id: string) => {
+              const c = planningCours.find(p => p.id === id);
+              return c ? `${c.nom} (${c.jour} ${c.horaire})` : id;
+            })
+            .join(', ');
+
+          const ancienTotal = parseFloat(existant.tarif_total as string);
+
+          // Créer une alerte admin enrichie
           await sql`
             INSERT INTO notifications_admin (type, message, inscription_id, inscription_concernee_id, delta, created_at)
             VALUES (
               'bascule_tarif_famille',
-              ${`Tarif de ${existant.student_name} mis à jour automatiquement (tarif réduit) suite à l'inscription de ${nouvelInscritNom} avec plus d'heures de cours.`},
+              ${`FRATRIE DÉTECTÉE — ${nouvelInscritNom} vient de s'inscrire (${coursNouvelInscrit}) avec plus d'heures que ${existant.student_name}. Le tarif de ${existant.student_name} a été automatiquement mis en tarif réduit : ${ancienTotal.toFixed(2).replace('.', ',')} € → ${nouveauTotal.toFixed(2).replace('.', ',')} €. Trop-perçu à régulariser : ${delta.toFixed(2).replace('.', ',')} €.`},
               ${nouvelInscritId},
               ${idABascule},
               ${delta},

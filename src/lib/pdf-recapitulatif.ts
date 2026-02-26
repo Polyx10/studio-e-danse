@@ -41,6 +41,7 @@ interface DonneesInscription {
   licenceFFD: number;
   totalGeneral: number;
   tarifReduit: boolean;
+  membreFamille?: string;
   
   // Options
   danseEtudes?: string;
@@ -243,7 +244,10 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
       doc.setTextColor(0, 128, 0);
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8);
-      doc.text('(Tarif réduit appliqué)', montantX + 5, y);
+      const labelReduit = donnees.membreFamille
+        ? `(Tarif réduit — fratrie avec ${donnees.membreFamille})`
+        : '(Tarif réduit appliqué)';
+      doc.text(labelReduit, montantX + 5, y);
       doc.setTextColor(0, 0, 0);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
