@@ -120,76 +120,23 @@ export async function POST(request: Request) {
       throw sqlError;
     }
     
-    // Basculement automatique du tarif famille si nécessaire
-    if (result.length > 0 && validatedData.tarif_famille_bascule_id) {
-      const idABascule = validatedData.tarif_famille_bascule_id;
-      const nouvelInscritId = result[0].id;
-      const nouvelInscritNom = `${validatedData.student_last_name} ${validatedData.student_first_name}`;
+    // Gestion automatique du tarif famille — détection côté serveur (fiable, indépendant du state React)
+    if (result.length > 0) {
       try {
-        // Récupérer les données actuelles de l'inscrit à basculer pour calculer le nouveau tarif
-        const inscritExistant = await sql`
-          SELECT id, student_name, tarif_cours, adhesion, licence_ffd, tarif_total, tarif_reduit
-          FROM inscriptions WHERE id = ${idABascule}
-        `;
-        if (inscritExistant.length > 0) {
-          const existant = inscritExistant[0];
-          const tarifCoursActuel = parseFloat(existant.tarif_cours as string);
-          // Recalculer tarif_cours en mode réduit (50% du tarif plein)
-          const tarifCoursReduit = parseFloat((tarifCoursActuel * 0.5).toFixed(2));
-          const nouveauTotal = parseFloat((tarifCoursReduit + parseFloat(existant.adhesion as string) + parseFloat(existant.licence_ffd as string)).toFixed(2));
-          const delta = parseFloat((parseFloat(existant.tarif_total as string) - nouveauTotal).toFixed(2));
-
-          await sql`
-            UPDATE inscriptions
-            SET tarif_reduit = true,
-                tarif_cours = ${tarifCoursReduit},
-                tarif_total = ${nouveauTotal},
-                updated_at = NOW()
-            WHERE id = ${idABascule}
-          `;
-
-          // Détail des cours de la nouvelle inscrite
-          const coursNouvelInscrit = validatedData.selected_courses
-            .map((id: string) => {
-              const c = planningCours.find(p => p.id === id);
-              return c ? `${c.nom} (${c.jour} ${c.horaire})` : id;
-            })
-            .join(', ');
-
-          const ancienTotal = parseFloat(existant.tarif_total as string);
-
-          // Créer une alerte admin enrichie
-          await sql`
-            INSERT INTO notifications_admin (type, message, inscription_id, inscription_concernee_id, delta, created_at)
-            VALUES (
-              'bascule_tarif_famille',
-              ${`FRATRIE DÉTECTÉE — ${nouvelInscritNom} vient de s'inscrire (${coursNouvelInscrit}) avec plus d'heures que ${existant.student_name}. Le tarif de ${existant.student_name} a été automatiquement mis en tarif réduit : ${ancienTotal.toFixed(2).replace('.', ',')} € → ${nouveauTotal.toFixed(2).replace('.', ',')} €. Trop-perçu à régulariser : ${delta.toFixed(2).replace('.', ',')} €.`},
-              ${nouvelInscritId},
-              ${idABascule},
-              ${delta},
-              NOW()
-            )
-          `;
-          console.log(`✅ Basculement famille : ${existant.student_name} → tarif réduit (delta: ${delta}€)`);
-        }
-      } catch (basculeError: unknown) {
-        console.error('⚠️ Erreur basculement famille (non bloquant):', basculeError instanceof Error ? basculeError.message : basculeError);
-      }
-    }
-
-    // Notification tarif réduit direct (inscrit avec moins d'heures qu'un membre existant)
-    if (result.length > 0 && validatedData.tarif_reduit && !validatedData.tarif_famille_bascule_id) {
-      try {
-        const saisonCourante2 = (() => { const now = new Date(); const year = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1; return `${year}-${year + 1}`; })();
+        const nouvelId = result[0].id;
+        const nouvelNom = `${validatedData.student_last_name} ${validatedData.student_first_name}`;
         const emailEleve = validatedData.student_email || null;
         const telEleve = validatedData.student_phone || null;
         const emailResp1 = validatedData.responsable1_email || null;
         const telResp1 = validatedData.responsable1_phone || null;
+
+        // Chercher tous les membres de la même famille déjà inscrits cette saison
         const membresFamille = await sql`
-          SELECT id, student_name FROM inscriptions
-          WHERE saison = ${saisonCourante2}
+          SELECT id, student_name, selected_courses, tarif_reduit, tarif_cours, adhesion, licence_ffd, tarif_total
+          FROM inscriptions
+          WHERE saison = ${saisonCourante}
             AND statut != 'annule'
-            AND id != ${result[0].id}
+            AND id != ${nouvelId}
             AND (
               (${emailEleve}::text IS NOT NULL AND (student_email = ${emailEleve} OR responsable1_email = ${emailEleve}))
               OR (${telEleve}::text IS NOT NULL AND (student_phone = ${telEleve} OR responsable1_phone = ${telEleve}))
@@ -197,27 +144,95 @@ export async function POST(request: Request) {
               OR (${telResp1}::text IS NOT NULL AND (student_phone = ${telResp1} OR responsable1_phone = ${telResp1}))
             )
         `;
+
         if (membresFamille.length > 0) {
-          const nouvelInscritNom2 = `${validatedData.student_last_name} ${validatedData.student_first_name}`;
-          const coursNouvelInscrit2 = validatedData.selected_courses
+          // Calculer les minutes du nouvel inscrit
+          const minutesNouvel = validatedData.selected_courses.reduce((total: number, id: string) => {
+            const c = planningCours.find(p => p.id === id);
+            return total + (c?.duree || 0);
+          }, 0);
+
+          // Calculer les minutes de chaque membre existant
+          type MembreFamille = {
+            id: string;
+            student_name: string;
+            selected_courses: string[];
+            tarif_reduit: boolean;
+            tarif_cours: string;
+            adhesion: string;
+            licence_ffd: string;
+            tarif_total: string;
+            minutes: number;
+          };
+          const membresAvecMinutes: MembreFamille[] = (membresFamille as MembreFamille[]).map(m => ({
+            ...m,
+            minutes: (Array.isArray(m.selected_courses) ? m.selected_courses : []).reduce((total: number, id: string) => {
+              const c = planningCours.find(p => p.id === id);
+              return total + (c?.duree || 0);
+            }, 0),
+          }));
+
+          // Trouver le membre avec le plus de minutes parmi tous (incluant le nouvel inscrit)
+          const maxMinutesExistants = Math.max(...membresAvecMinutes.map(m => m.minutes));
+          const coursNouvel = validatedData.selected_courses
             .map((id: string) => { const c = planningCours.find(p => p.id === id); return c ? `${c.nom} (${c.jour} ${c.horaire})` : id; })
             .join(', ');
-          const nomsMembres = membresFamille.map((m: Record<string, unknown>) => m.student_name as string).join(', ');
-          await sql`
-            INSERT INTO notifications_admin (type, message, inscription_id, inscription_concernee_id, delta, created_at)
-            VALUES (
-              'tarif_reduit_famille',
-              ${`FRATRIE — ${nouvelInscritNom2} a été inscrit(e) en tarif réduit (${coursNouvelInscrit2}). Membre(s) de la même famille : ${nomsMembres}. Vérifier que le tarif plein est bien appliqué au membre ayant le plus d'heures.`},
-              ${result[0].id},
-              ${membresFamille[0].id},
-              null,
-              NOW()
-            )
-          `;
-          console.log(`ℹ️ Notification tarif réduit direct famille : ${nouvelInscritNom2}`);
+
+          if (minutesNouvel > maxMinutesExistants) {
+            // Le nouvel inscrit a plus d'heures → le membre avec le max actuel doit passer en réduit
+            const membreABascule = membresAvecMinutes.find(m => m.minutes === maxMinutesExistants)!;
+            const tarifCoursActuel = parseFloat(membreABascule.tarif_cours);
+            // Si déjà en tarif réduit, recalculer depuis le tarif plein (doubler pour retrouver le plein, puis diviser)
+            const tarifCoursPlein = membreABascule.tarif_reduit ? tarifCoursActuel * 2 : tarifCoursActuel;
+            const tarifCoursReduit = parseFloat((tarifCoursPlein * 0.5).toFixed(2));
+            const adhesion = parseFloat(membreABascule.adhesion);
+            const licence = parseFloat(membreABascule.licence_ffd);
+            const nouveauTotal = parseFloat((tarifCoursReduit + adhesion + licence).toFixed(2));
+            const ancienTotal = parseFloat(membreABascule.tarif_total);
+            const delta = parseFloat((ancienTotal - nouveauTotal).toFixed(2));
+
+            await sql`
+              UPDATE inscriptions
+              SET tarif_reduit = true,
+                  tarif_cours = ${tarifCoursReduit},
+                  tarif_total = ${nouveauTotal},
+                  updated_at = NOW()
+              WHERE id = ${membreABascule.id}
+            `;
+
+            await sql`
+              INSERT INTO notifications_admin (type, message, inscription_id, inscription_concernee_id, delta, created_at)
+              VALUES (
+                'bascule_tarif_famille',
+                ${`FRATRIE DÉTECTÉE — ${nouvelNom} vient de s'inscrire (${coursNouvel}) avec plus d'heures que ${membreABascule.student_name}. Le tarif de ${membreABascule.student_name} a été automatiquement mis en tarif réduit : ${ancienTotal.toFixed(2).replace('.', ',')} € → ${nouveauTotal.toFixed(2).replace('.', ',')} €. Trop-perçu à régulariser : ${delta.toFixed(2).replace('.', ',')} €.`},
+                ${nouvelId},
+                ${membreABascule.id},
+                ${delta},
+                NOW()
+              )
+            `;
+            console.log(`✅ Basculement famille (serveur) : ${membreABascule.student_name} → tarif réduit (delta: ${delta}€)`);
+
+          } else {
+            // Le nouvel inscrit a moins ou autant d'heures → il est directement en tarif réduit
+            const nomsMembres = membresAvecMinutes.map(m => m.student_name).join(', ');
+            const membrePrincipal = membresAvecMinutes.find(m => m.minutes === maxMinutesExistants)!;
+            await sql`
+              INSERT INTO notifications_admin (type, message, inscription_id, inscription_concernee_id, delta, created_at)
+              VALUES (
+                'tarif_reduit_famille',
+                ${`FRATRIE — ${nouvelNom} vient de s'inscrire en tarif réduit (${coursNouvel}). Membre(s) de la même famille : ${nomsMembres}. Vérifier que le tarif plein est bien appliqué au membre ayant le plus d'heures.`},
+                ${nouvelId},
+                ${membrePrincipal.id},
+                null,
+                NOW()
+              )
+            `;
+            console.log(`ℹ️ Notification tarif réduit direct famille (serveur) : ${nouvelNom}`);
+          }
         }
-      } catch (notifError: unknown) {
-        console.error('⚠️ Erreur notification tarif réduit famille (non bloquant):', notifError instanceof Error ? notifError.message : notifError);
+      } catch (familleError: unknown) {
+        console.error('⚠️ Erreur gestion famille (non bloquant):', familleError instanceof Error ? familleError.message : familleError);
       }
     }
 
