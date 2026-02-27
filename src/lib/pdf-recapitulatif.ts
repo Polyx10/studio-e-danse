@@ -159,6 +159,25 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
 
   y += 8;
 
+  // ============ FRATRIE / TARIF FAMILLE ============
+  if (donnees.membreFamille) {
+    doc.setFillColor(255, 248, 220);
+    doc.roundedRect(mg, y - 4, md - mg, 14, 2, 2, 'F');
+    doc.setDrawColor(230, 184, 0);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(mg, y - 4, md - mg, 14, 2, 2, 'S');
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.2);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(120, 80, 0);
+    doc.text('Inscription fratrie :', mg + 4, y + 3);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Membre(s) de la même famille déjà inscrit(s) : ${donnees.membreFamille}`, mg + 40, y + 3);
+    doc.setTextColor(0, 0, 0);
+    y += 22;
+  }
+
   // ============ RESPONSABLES LÉGAUX ============
   y = drawSectionTitle(doc, 'RESPONSABLES LÉGAUX', mg, y);
 

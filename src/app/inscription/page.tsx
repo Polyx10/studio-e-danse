@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, useMemo } from "react";
+import { Suspense, useEffect, useState, useMemo, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -91,8 +91,8 @@ function InscriptionPageContent() {
   const [familleBasculerNom, setFamilleBasculerNom] = useState<string | null>(null);
   const [familleMinutesNouvel, setFamilleMinutesNouvel] = useState<number>(0);
   const [familleDetectionEnCours, setFamilleDetectionEnCours] = useState(false);
-  // Capturé au moment du submit pour le PDF (familleDetectee peut être null après setIsSubmitted)
-  const [famillePourPDF, setFamillePourPDF] = useState<string | undefined>(undefined);
+  // Capturé au moment du submit pour le PDF (useRef = disponible immédiatement, sans re-render)
+  const famillePourPDFRef = useRef<string | undefined>(undefined);
   
   // Réinitialiser le formulaire à l'étape 1 quand on clique sur "S'inscrire" dans le header
   useEffect(() => {
@@ -418,10 +418,10 @@ function InscriptionPageContent() {
       
       console.log('Inscription réussie!', result);
       
-      // Capturer les noms famille pour le PDF avant réinitialisation des states
-      if (familleDetectee && familleDetectee.membres.length > 0) {
-        setFamillePourPDF(familleDetectee.membres.map(m => m.nom).join(', '));
-      }
+      // Capturer les noms famille pour le PDF (useRef = synchrone, disponible immédiatement)
+      famillePourPDFRef.current = (familleDetectee && familleDetectee.membres.length > 0)
+        ? familleDetectee.membres.map(m => m.nom).join(', ')
+        : undefined;
 
       // Incrémenter les quotas pour les cours sélectionnés
       try {
@@ -1228,7 +1228,7 @@ function InscriptionPageContent() {
                                   licenceFFD: tarifCalcule.licenceFFD,
                                   totalGeneral: tarifCalcule.total,
                                   tarifReduit: formData.tarifReduit,
-                                  membreFamille: famillePourPDF,
+                                  membreFamille: famillePourPDFRef.current,
                                   danseEtudes: formData.danseEtudesOption,
                                   participationSpectacle: formData.participationSpectacle,
                                   nombreCostumes: formData.nombreCostumes,
