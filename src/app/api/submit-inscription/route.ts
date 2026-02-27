@@ -198,8 +198,7 @@ export async function POST(request: Request) {
               UPDATE inscriptions
               SET tarif_reduit = true,
                   tarif_cours = ${tarifCoursReduit},
-                  tarif_total = ${nouveauTotal},
-                  updated_at = NOW()
+                  tarif_total = ${nouveauTotal}
               WHERE id = ${membreABascule.id}
             `;
 
