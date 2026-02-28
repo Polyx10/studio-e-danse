@@ -806,15 +806,7 @@ function InscriptionPageContent() {
                               <p className="text-sm text-gray-500">Sélectionnez vos cours pour que le tarif soit calculé automatiquement.</p>
                             )}
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                            <Checkbox id="tarifReduit" checked={formData.tarifReduit} onCheckedChange={(c) => handleCheckboxChange("tarifReduit", c as boolean)} />
-                            <div>
-                              <Label htmlFor="tarifReduit" className="font-semibold">Tarif réduit</Label>
-                              <p className="text-sm text-gray-600">Si un autre membre de la famille est déjà inscrit au tarif plein</p>
-                            </div>
-                          </div>
-                        )}
+                        ) : null}
 
                         <div className="flex flex-wrap gap-2 p-3 bg-gray-100 rounded-lg">
                           <span className="text-sm font-medium mr-2">Professeurs :</span>
