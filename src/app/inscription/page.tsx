@@ -1228,7 +1228,9 @@ function InscriptionPageContent() {
                                   licenceFFD: tarifCalcule.licenceFFD,
                                   totalGeneral: tarifCalcule.total,
                                   tarifReduit: formData.tarifReduit,
-                                  membreFamille: famillePourPDFRef.current,
+                                  membreFamille: familleDetectee && familleDetectee.membres.length > 0
+                                    ? familleDetectee.membres.map(m => m.nom).join(', ')
+                                    : undefined,
                                   danseEtudes: formData.danseEtudesOption,
                                   participationSpectacle: formData.participationSpectacle,
                                   nombreCostumes: formData.nombreCostumes,
