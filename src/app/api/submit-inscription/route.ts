@@ -94,6 +94,17 @@ export async function POST(request: Request) {
         RETURNING *
       `;
 
+      // Incrémenter les quotas en ligne pour chaque cours sélectionné
+      if (result.length > 0 && validatedData.selected_courses.length > 0) {
+        for (const coursId of validatedData.selected_courses) {
+          await sql`
+            UPDATE cours_quotas
+            SET inscriptions_en_ligne = inscriptions_en_ligne + 1
+            WHERE cours_id = ${coursId}
+          `;
+        }
+      }
+
       // Générer automatiquement les présences pour tous les cours sélectionnés
       if (result.length > 0 && validatedData.selected_courses.length > 0) {
         const inscriptionId = result[0].id;
