@@ -511,6 +511,25 @@ function InscriptionPageContent() {
     return grouped;
   }, []);
 
+  if (isSubmitting) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-20 flex items-center justify-center">
+        <div className="text-center space-y-6 max-w-md mx-auto px-4">
+          <div className="w-20 h-20 mx-auto rounded-full bg-[#F9CA24] flex items-center justify-center animate-pulse">
+            <CheckCircle2 className="h-10 w-10 text-[#2D3436]" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">Enregistrement en cours…</h2>
+          <p className="text-gray-600">Votre inscription est en cours de traitement. Merci de ne pas fermer cette page.</p>
+          <div className="flex justify-center gap-1.5 pt-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#F9CA24] animate-bounce" style={{ animationDelay: '0ms' }} />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#F9CA24] animate-bounce" style={{ animationDelay: '150ms' }} />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#F9CA24] animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gray-50 py-20">

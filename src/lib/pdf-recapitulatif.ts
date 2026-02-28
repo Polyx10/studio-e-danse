@@ -171,7 +171,7 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(120, 80, 0);
-    doc.text('Inscription fratrie :', mg + 4, y + 3);
+    doc.text('Inscription famille :', mg + 4, y + 3);
     doc.setFont('helvetica', 'normal');
     doc.text(`Membre(s) de la même famille déjà inscrit(s) : ${donnees.membreFamille}`, mg + 40, y + 3);
     doc.setTextColor(0, 0, 0);
