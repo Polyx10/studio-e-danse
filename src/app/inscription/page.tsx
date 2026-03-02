@@ -115,6 +115,7 @@ function InscriptionPageContent() {
   const [verificationMsg, setVerificationMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [nomVerif, setNomVerif] = useState('');
   const [prenomVerif, setPrenomVerif] = useState('');
+  const [ancienAdhChecked, setAncienAdhChecked] = useState(false);
 
   const handleVerifierAdherent = async () => {
     if (!nomVerif || !prenomVerif || !formData.studentBirthDate) return;
@@ -672,8 +673,33 @@ function InscriptionPageContent() {
                           <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                           <p className="text-sm text-blue-800">Si plusieurs membres de votre famille s&apos;inscrivent, le tarif plein sera automatiquement attribué à celui qui a le plus d&apos;heures de cours. Vous n&apos;avez pas besoin de vous en préoccuper.</p>
                         </div>
+                        {/* Case à cocher ancien adhérent (hors période préinscription) */}
+                        {!preinscriptionActive && (
+                          <div className="flex items-start gap-3">
+                            <input
+                              type="checkbox"
+                              id="ancienAdherent"
+                              checked={ancienAdhChecked}
+                              onChange={e => {
+                                setAncienAdhChecked(e.target.checked);
+                                if (!e.target.checked) {
+                                  setAdherentVerifie(false);
+                                  setVerificationMsg(null);
+                                  setNomVerif('');
+                                  setPrenomVerif('');
+                                  setFormData(prev => ({ ...prev, adherentPrecedent: false }));
+                                }
+                              }}
+                              className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-[#2D3436] cursor-pointer"
+                            />
+                            <label htmlFor="ancienAdherent" className="text-sm text-gray-700 cursor-pointer">
+                              J&apos;étais adhérent(e) à STUDIO e la saison précédente <span className="text-gray-400">(pré-remplissage automatique)</span>
+                            </label>
+                          </div>
+                        )}
+
                         {/* Vérification ancien adhérent */}
-                        {preinscriptionActive && (
+                        {(preinscriptionActive || ancienAdhChecked) && (
                           <div className={`border rounded-lg p-4 space-y-3 ${preinscriptionAnciensActive && !preinscriptionTousActive ? 'border-amber-300 bg-amber-50' : 'border-blue-200 bg-blue-50'}`}>
                             <p className={`text-sm font-semibold ${preinscriptionAnciensActive && !preinscriptionTousActive ? 'text-amber-900' : 'text-blue-900'}`}>
                               {preinscriptionAnciensActive && !preinscriptionTousActive
