@@ -14,7 +14,7 @@ export function useConfig() {
   useEffect(() => {
     async function fetchConfig() {
       try {
-        const response = await fetch('/api/config');
+        const response = await fetch('/api/config', { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
           setConfig(data);
