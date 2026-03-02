@@ -109,6 +109,60 @@ function InscriptionPageContent() {
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [coursListeAttente, setCoursListeAttente] = useState<CoursPlanning | null>(null);
 
+  // Vérification ancien adhérent
+  const [adherentVerifie, setAdherentVerifie] = useState(false);
+  const [verificationEnCours, setVerificationEnCours] = useState(false);
+  const [verificationMsg, setVerificationMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [nomVerif, setNomVerif] = useState('');
+  const [prenomVerif, setPrenomVerif] = useState('');
+
+  const handleVerifierAdherent = async () => {
+    if (!nomVerif || !prenomVerif || !formData.studentBirthDate) return;
+    setVerificationEnCours(true);
+    setVerificationMsg(null);
+    try {
+      const res = await fetch('/api/verify-adherent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nom: nomVerif, prenom: prenomVerif, dateNaissance: formData.studentBirthDate }),
+        cache: 'no-store',
+      });
+      const data = await res.json();
+      if (data.found) {
+        setAdherentVerifie(true);
+        setFormData(prev => ({
+          ...prev,
+          adherentPrecedent: true,
+          studentLastName: data.adherent.student_last_name || prev.studentLastName,
+          studentFirstName: data.adherent.student_first_name || prev.studentFirstName,
+          studentGender: data.adherent.student_gender || prev.studentGender,
+          studentAddress: data.adherent.student_address || prev.studentAddress,
+          studentPostalCode: data.adherent.student_postal_code || prev.studentPostalCode,
+          studentCity: data.adherent.student_city || prev.studentCity,
+          studentPhone: data.adherent.student_phone || prev.studentPhone,
+          studentEmail: data.adherent.student_email || prev.studentEmail,
+          responsable1Name: data.adherent.responsable1_name || prev.responsable1Name,
+          responsable1Phone: data.adherent.responsable1_phone || prev.responsable1Phone,
+          responsable1Email: data.adherent.responsable1_email || prev.responsable1Email,
+          responsable2Name: data.adherent.responsable2_name || prev.responsable2Name,
+          responsable2Phone: data.adherent.responsable2_phone || prev.responsable2Phone,
+          responsable2Email: data.adherent.responsable2_email || prev.responsable2Email,
+          responsable2Address: data.adherent.responsable2_address || prev.responsable2Address,
+          responsable2PostalCode: data.adherent.responsable2_postal_code || prev.responsable2PostalCode,
+          responsable2City: data.adherent.responsable2_city || prev.responsable2City,
+        }));
+        setVerificationMsg({ type: 'ok', text: '✅ Ancien adhérent reconnu — formulaire pré-rempli.' });
+      } else {
+        setAdherentVerifie(false);
+        setVerificationMsg({ type: 'err', text: data.message || 'Adhérent non trouvé dans nos archives.' });
+      }
+    } catch {
+      setVerificationMsg({ type: 'err', text: 'Erreur réseau lors de la vérification.' });
+    } finally {
+      setVerificationEnCours(false);
+    }
+  };
+
   // Détection famille
   const [familleDetectee, setFamilleDetectee] = useState<{ membres: { id: string; nom: string; minutes: number }[]; membrePrincipalNom: string | null } | null>(null);
   const [familleBasculerId, setFamilleBasculerId] = useState<string | null>(null);
@@ -346,7 +400,9 @@ function InscriptionPageContent() {
   }, [versementsDisponibles]);
 
   // Pas de préinscription quand le prorata est actif (prorata = en cours d'année, pas de période de préinscription)
-  const preinscriptionEffective = preinscriptionActive && !prorataActif;
+  // Si préinscription réservée aux anciens : seulement si l'adhérent a été vérifié
+  const preinscriptionAutorisee = preinscriptionTousActive || (preinscriptionAnciensActive && adherentVerifie);
+  const preinscriptionEffective = preinscriptionAutorisee && !prorataActif;
 
   const echeances = useMemo(() => {
     if (tarifCalcule.total <= 0) return [];
@@ -616,10 +672,44 @@ function InscriptionPageContent() {
                           <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
                           <p className="text-sm text-blue-800">Si plusieurs membres de votre famille s&apos;inscrivent, le tarif plein sera automatiquement attribué à celui qui a le plus d&apos;heures de cours. Vous n&apos;avez pas besoin de vous en préoccuper.</p>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <Checkbox id="adherentPrecedent" checked={formData.adherentPrecedent} onCheckedChange={(c) => handleCheckboxChange("adherentPrecedent", c as boolean)} />
-                          <Label htmlFor="adherentPrecedent">Adhérent STUDIO e saison 2024/2025</Label>
-                        </div>
+                        {/* Vérification ancien adhérent */}
+                        {preinscriptionActive && (
+                          <div className="border border-blue-200 rounded-lg bg-blue-50 p-4 space-y-3">
+                            <p className="text-sm font-semibold text-blue-900">Étiez-vous adhérent(e) STUDIO e la saison précédente ?</p>
+                            <p className="text-xs text-blue-700">Saisissez votre nom, prénom et date de naissance pour être reconnu(e) et pré-remplir le formulaire automatiquement.</p>
+                            <div className="grid sm:grid-cols-2 gap-3">
+                              <input
+                                value={nomVerif}
+                                onChange={e => { setNomVerif(e.target.value); setAdherentVerifie(false); setVerificationMsg(null); }}
+                                placeholder="Nom de famille"
+                                className="border border-blue-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              />
+                              <input
+                                value={prenomVerif}
+                                onChange={e => { setPrenomVerif(e.target.value); setAdherentVerifie(false); setVerificationMsg(null); }}
+                                placeholder="Prénom"
+                                className="border border-blue-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              />
+                            </div>
+                            {!formData.studentBirthDate && <p className="text-xs text-amber-600">⚠️ Renseignez d&apos;abord la date de naissance ci-dessous.</p>}
+                            <button
+                              type="button"
+                              onClick={handleVerifierAdherent}
+                              disabled={verificationEnCours || !nomVerif || !prenomVerif || !formData.studentBirthDate}
+                              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-sm px-4 py-2 rounded-md transition-colors"
+                            >
+                              {verificationEnCours ? 'Vérification…' : 'Vérifier'}
+                            </button>
+                            {verificationMsg && (
+                              <p className={`text-sm font-medium ${verificationMsg.type === 'ok' ? 'text-green-700' : 'text-red-600'}`}>
+                                {verificationMsg.text}
+                              </p>
+                            )}
+                            {adherentVerifie && (
+                              <p className="text-xs text-green-600">Le formulaire a été pré-rempli avec vos données. Vérifiez et corrigez si nécessaire.</p>
+                            )}
+                          </div>
+                        )}
                         <div className="grid sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="studentLastName">Nom *</Label>
