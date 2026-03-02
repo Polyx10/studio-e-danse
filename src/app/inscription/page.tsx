@@ -674,9 +674,17 @@ function InscriptionPageContent() {
                         </div>
                         {/* Vérification ancien adhérent */}
                         {preinscriptionActive && (
-                          <div className="border border-blue-200 rounded-lg bg-blue-50 p-4 space-y-3">
-                            <p className="text-sm font-semibold text-blue-900">Étiez-vous adhérent(e) STUDIO e la saison précédente ?</p>
-                            <p className="text-xs text-blue-700">Saisissez votre nom, prénom et date de naissance pour être reconnu(e) et pré-remplir le formulaire automatiquement.</p>
+                          <div className={`border rounded-lg p-4 space-y-3 ${preinscriptionAnciensActive && !preinscriptionTousActive ? 'border-amber-300 bg-amber-50' : 'border-blue-200 bg-blue-50'}`}>
+                            <p className={`text-sm font-semibold ${preinscriptionAnciensActive && !preinscriptionTousActive ? 'text-amber-900' : 'text-blue-900'}`}>
+                              {preinscriptionAnciensActive && !preinscriptionTousActive
+                                ? '🔒 Préinscription réservée aux anciens adhérents'
+                                : '👋 Étiez-vous adhérent(e) STUDIO e la saison précédente ?'}
+                            </p>
+                            <p className={`text-xs ${preinscriptionAnciensActive && !preinscriptionTousActive ? 'text-amber-800' : 'text-blue-700'}`}>
+                              {preinscriptionAnciensActive && !preinscriptionTousActive
+                                ? 'Identifiez-vous ci-dessous pour accéder à la préinscription. Si vous n\'êtes pas dans nos archives, inscrivez-vous normalement en septembre.'
+                                : 'Si vous étiez déjà inscrit(e), saisissez votre nom, prénom et date de naissance pour pré-remplir le formulaire automatiquement.'}
+                            </p>
                             <div className="grid sm:grid-cols-2 gap-3">
                               <input
                                 value={nomVerif}
