@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/neon';
 
+export const dynamic = 'force-dynamic';
+
 // GET - Récupérer la configuration
 export async function GET() {
   try {
