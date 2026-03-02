@@ -685,103 +685,121 @@ function InscriptionPageContent() {
                                 ? 'Identifiez-vous ci-dessous pour accéder à la préinscription. Si vous n\'êtes pas dans nos archives, inscrivez-vous normalement en septembre.'
                                 : 'Si vous étiez déjà inscrit(e), saisissez votre nom, prénom et date de naissance pour pré-remplir le formulaire automatiquement.'}
                             </p>
-                            <div className="grid sm:grid-cols-2 gap-3">
-                              <input
-                                value={nomVerif}
-                                onChange={e => { setNomVerif(e.target.value); setAdherentVerifie(false); setVerificationMsg(null); }}
-                                placeholder="Nom de famille"
-                                className="border border-blue-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                              />
-                              <input
-                                value={prenomVerif}
-                                onChange={e => { setPrenomVerif(e.target.value); setAdherentVerifie(false); setVerificationMsg(null); }}
-                                placeholder="Prénom"
-                                className="border border-blue-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                              />
-                            </div>
-                            {!formData.studentBirthDate && <p className="text-xs text-amber-600">⚠️ Renseignez d&apos;abord la date de naissance ci-dessous.</p>}
-                            <button
-                              type="button"
-                              onClick={handleVerifierAdherent}
-                              disabled={verificationEnCours || !nomVerif || !prenomVerif || !formData.studentBirthDate}
-                              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-sm px-4 py-2 rounded-md transition-colors"
-                            >
-                              {verificationEnCours ? 'Vérification…' : 'Vérifier'}
-                            </button>
-                            {verificationMsg && (
-                              <p className={`text-sm font-medium ${verificationMsg.type === 'ok' ? 'text-green-700' : 'text-red-600'}`}>
-                                {verificationMsg.text}
-                              </p>
-                            )}
-                            {adherentVerifie && (
-                              <p className="text-xs text-green-600">Le formulaire a été pré-rempli avec vos données. Vérifiez et corrigez si nécessaire.</p>
+                            {!adherentVerifie ? (
+                              <>
+                                <div className="grid sm:grid-cols-2 gap-3">
+                                  <input
+                                    value={nomVerif}
+                                    onChange={e => { setNomVerif(e.target.value); setVerificationMsg(null); }}
+                                    placeholder="Nom de famille"
+                                    className="border border-amber-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                  />
+                                  <input
+                                    value={prenomVerif}
+                                    onChange={e => { setPrenomVerif(e.target.value); setVerificationMsg(null); }}
+                                    placeholder="Prénom"
+                                    className="border border-amber-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                  />
+                                </div>
+                                <div>
+                                  <p className="text-xs text-amber-800 mb-1.5">Date de naissance</p>
+                                  <div className="grid grid-cols-3 gap-2">
+                                    <Select value={birthDay} onValueChange={(v: string) => { setBirthDay(v); setAdherentVerifie(false); setVerificationMsg(null); }}>
+                                      <SelectTrigger className="border-amber-300"><SelectValue placeholder="Jour" /></SelectTrigger>
+                                      <SelectContent>{days.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                    <Select value={birthMonth} onValueChange={(v: string) => { setBirthMonth(v); setAdherentVerifie(false); setVerificationMsg(null); }}>
+                                      <SelectTrigger className="border-amber-300"><SelectValue placeholder="Mois" /></SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="01">Janvier</SelectItem><SelectItem value="02">Février</SelectItem>
+                                        <SelectItem value="03">Mars</SelectItem><SelectItem value="04">Avril</SelectItem>
+                                        <SelectItem value="05">Mai</SelectItem><SelectItem value="06">Juin</SelectItem>
+                                        <SelectItem value="07">Juillet</SelectItem><SelectItem value="08">Août</SelectItem>
+                                        <SelectItem value="09">Septembre</SelectItem><SelectItem value="10">Octobre</SelectItem>
+                                        <SelectItem value="11">Novembre</SelectItem><SelectItem value="12">Décembre</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <Select value={birthYear} onValueChange={(v: string) => { setBirthYear(v); setAdherentVerifie(false); setVerificationMsg(null); }}>
+                                      <SelectTrigger className="border-amber-300"><SelectValue placeholder="Année" /></SelectTrigger>
+                                      <SelectContent>{years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={handleVerifierAdherent}
+                                  disabled={verificationEnCours || !nomVerif || !prenomVerif || !formData.studentBirthDate}
+                                  className="bg-amber-600 hover:bg-amber-700 disabled:opacity-40 text-white text-sm px-4 py-2 rounded-md transition-colors"
+                                >
+                                  {verificationEnCours ? 'Vérification…' : 'Vérifier mon identité'}
+                                </button>
+                                {verificationMsg && (
+                                  <p className={`text-sm font-medium ${verificationMsg.type === 'ok' ? 'text-green-700' : 'text-red-600'}`}>
+                                    {verificationMsg.text}
+                                  </p>
+                                )}
+                              </>
+                            ) : (
+                              <div className="flex items-center gap-3 bg-green-100 border border-green-300 rounded-md px-4 py-3">
+                                <span className="text-green-600 text-xl">✅</span>
+                                <div>
+                                  <p className="text-sm font-semibold text-green-800">Ancien adhérent reconnu</p>
+                                  <p className="text-xs text-green-700">{formData.studentFirstName} {formData.studentLastName} — formulaire pré-rempli. Vérifiez et corrigez si nécessaire.</p>
+                                </div>
+                                <button type="button" onClick={() => { setAdherentVerifie(false); setVerificationMsg(null); setFormData(prev => ({ ...prev, adherentPrecedent: false })); }} className="ml-auto text-xs text-green-600 underline hover:text-green-800">
+                                  Changer
+                                </button>
+                              </div>
                             )}
                           </div>
                         )}
-                        <div className="grid sm:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="studentLastName">Nom *</Label>
-                            <Input id="studentLastName" name="studentLastName" value={formData.studentLastName} onChange={handleInputChange} required />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="studentFirstName">Prénom *</Label>
-                            <Input id="studentFirstName" name="studentFirstName" value={formData.studentFirstName} onChange={handleInputChange} required />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Sexe</Label>
-                            <RadioGroup value={formData.studentGender} onValueChange={(v: string) => setFormData(p => ({ ...p, studentGender: v }))} className="flex gap-4">
-                              <div className="flex items-center space-x-2"><RadioGroupItem value="F" id="f" /><Label htmlFor="f">F</Label></div>
-                              <div className="flex items-center space-x-2"><RadioGroupItem value="M" id="m" /><Label htmlFor="m">M</Label></div>
-                            </RadioGroup>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="studentBirthDate">Date de naissance *</Label>
-                          <div className="grid grid-cols-3 gap-3">
-                            <Select value={birthDay} onValueChange={(v: string) => setBirthDay(v)}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Jour" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {days.map((d) => (
-                                  <SelectItem key={d} value={d}>{d}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-
-                            <Select value={birthMonth} onValueChange={(v: string) => setBirthMonth(v)}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Mois" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="01">Janvier</SelectItem>
-                                <SelectItem value="02">Février</SelectItem>
-                                <SelectItem value="03">Mars</SelectItem>
-                                <SelectItem value="04">Avril</SelectItem>
-                                <SelectItem value="05">Mai</SelectItem>
-                                <SelectItem value="06">Juin</SelectItem>
-                                <SelectItem value="07">Juillet</SelectItem>
-                                <SelectItem value="08">Août</SelectItem>
-                                <SelectItem value="09">Septembre</SelectItem>
-                                <SelectItem value="10">Octobre</SelectItem>
-                                <SelectItem value="11">Novembre</SelectItem>
-                                <SelectItem value="12">Décembre</SelectItem>
-                              </SelectContent>
-                            </Select>
-
-                            <Select value={birthYear} onValueChange={(v: string) => setBirthYear(v)}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Année" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {years.map((y) => (
-                                  <SelectItem key={y} value={y}>{y}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          {formData.studentBirthDate && <p className="text-sm text-gray-500">Âge : {tarifCalcule.age} ans</p>}
-                        </div>
+                        {/* Champs identité — masqués en mode anciens uniquement tant que non vérifié */}
+                        {!(preinscriptionAnciensActive && !preinscriptionTousActive && !adherentVerifie) && (
+                          <>
+                            <div className="grid sm:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="studentLastName">Nom *</Label>
+                                <Input id="studentLastName" name="studentLastName" value={formData.studentLastName} onChange={handleInputChange} required />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor="studentFirstName">Prénom *</Label>
+                                <Input id="studentFirstName" name="studentFirstName" value={formData.studentFirstName} onChange={handleInputChange} required />
+                              </div>
+                              <div className="space-y-2">
+                                <Label>Sexe</Label>
+                                <RadioGroup value={formData.studentGender} onValueChange={(v: string) => setFormData(p => ({ ...p, studentGender: v }))} className="flex gap-4">
+                                  <div className="flex items-center space-x-2"><RadioGroupItem value="F" id="f" /><Label htmlFor="f">F</Label></div>
+                                  <div className="flex items-center space-x-2"><RadioGroupItem value="M" id="m" /><Label htmlFor="m">M</Label></div>
+                                </RadioGroup>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="studentBirthDate">Date de naissance *</Label>
+                              <div className="grid grid-cols-3 gap-3">
+                                <Select value={birthDay} onValueChange={(v: string) => setBirthDay(v)}>
+                                  <SelectTrigger><SelectValue placeholder="Jour" /></SelectTrigger>
+                                  <SelectContent>{days.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+                                </Select>
+                                <Select value={birthMonth} onValueChange={(v: string) => setBirthMonth(v)}>
+                                  <SelectTrigger><SelectValue placeholder="Mois" /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="01">Janvier</SelectItem><SelectItem value="02">Février</SelectItem>
+                                    <SelectItem value="03">Mars</SelectItem><SelectItem value="04">Avril</SelectItem>
+                                    <SelectItem value="05">Mai</SelectItem><SelectItem value="06">Juin</SelectItem>
+                                    <SelectItem value="07">Juillet</SelectItem><SelectItem value="08">Août</SelectItem>
+                                    <SelectItem value="09">Septembre</SelectItem><SelectItem value="10">Octobre</SelectItem>
+                                    <SelectItem value="11">Novembre</SelectItem><SelectItem value="12">Décembre</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <Select value={birthYear} onValueChange={(v: string) => setBirthYear(v)}>
+                                  <SelectTrigger><SelectValue placeholder="Année" /></SelectTrigger>
+                                  <SelectContent>{years.map((y) => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
+                                </Select>
+                              </div>
+                              {formData.studentBirthDate && <p className="text-sm text-gray-500">Âge : {tarifCalcule.age} ans</p>}
+                            </div>
+                          </>
+                        )}
                         {isMajeur && (
                           <>
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-1">
