@@ -11,15 +11,38 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Info, AlertCircle, Calculator, Users } from "lucide-react";
-import { planningCours, professeursColors, tarifsSpeciaux, fraisFixes, getTarifForDuree, calculateAge, CoursPlanning, getCoursRecommandes } from "@/lib/planning-data";
+import { planningCours, professeursColors, calculateAge, getTarifForDuree, CoursPlanning, getCoursRecommandes } from "@/lib/planning-data";
+import { useTarifs, TarifGrilleRow } from "@/hooks/useTarifs";
 import { useQuotas, incrementerQuota } from "@/hooks/useQuotas";
 import { ListeAttenteModal } from "@/components/ListeAttenteModal";
 import { calculerEcheancierSansCentimes } from "@/lib/echeancier";
 import { genererPDFRecapitulatif, genererPDFEcheancier } from "@/lib/pdf-recapitulatif";
 import { useConfig } from "@/hooks/useConfig";
-import { getPeriodeFromDate, calculerTarifProrata, periodesLabels, vacancesDefaut2526 } from "@/lib/prorata-data";
+import { getPeriodeFromDate, periodesLabels, vacancesDefaut2526 } from "@/lib/prorata-data";
 import type { PeriodeProrata, VacancesScolaires } from "@/lib/prorata-data";
 
+const periodesRestantesSite: Record<string, number> = { '1A': 6, '1B': 5, '2A': 4, '2B': 3, '3A': 2, '3B': 1 };
+
+function getTarifFromGrille(totalMinutes: number, isReduit: boolean, grille: TarifGrilleRow[]): number {
+  if (grille.length === 0) return getTarifForDuree(totalMinutes, isReduit);
+  const rounded = Math.ceil(totalMinutes / 15) * 15;
+  const capped = Math.min(rounded, 600);
+  const exact = grille.find(r => r.duree_minutes === capped);
+  if (exact) return isReduit ? exact.tarif_reduit : exact.tarif_plein;
+  const sorted = [...grille].sort((a, b) => a.duree_minutes - b.duree_minutes);
+  for (let i = 0; i < sorted.length - 1; i++) {
+    if (capped > sorted[i].duree_minutes && capped < sorted[i + 1].duree_minutes) {
+      return isReduit ? sorted[i + 1].tarif_reduit : sorted[i + 1].tarif_plein;
+    }
+  }
+  return isReduit ? sorted[sorted.length - 1].tarif_reduit : sorted[sorted.length - 1].tarif_plein;
+}
+
+function getTarifProrataFromGrille(totalMinutes: number, isReduit: boolean, periode: string, grille: TarifGrilleRow[]): number {
+  const tarifAnnuel = getTarifFromGrille(totalMinutes, isReduit, grille);
+  const nbPeriodes = periodesRestantesSite[periode] ?? 6;
+  return Math.round(tarifAnnuel * nbPeriodes / 6 * 100) / 100;
+}
 // Formater un montant avec 2 décimales (ex: 21.5 → "21,50")
 function fmt(n: number): string {
   return n.toFixed(2).replace('.', ',');
@@ -78,6 +101,7 @@ function StepIndicator({ currentStep, isMajeur }: { currentStep: number; isMajeu
 
 function InscriptionPageContent() {
   const searchParams = useSearchParams();
+  const { grille, fraisFixes, tarifsSpeciaux } = useTarifs();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -289,12 +313,12 @@ function InscriptionPageContent() {
     let tarifCours = 0;
     if (totalMinutes > 0) {
       if (prorataActif) {
-        tarifCours = calculerTarifProrata(totalMinutes, isReduit, periodeActuelle);
+        tarifCours = getTarifProrataFromGrille(totalMinutes, isReduit, periodeActuelle, grille);
       } else {
-        tarifCours = getTarifForDuree(totalMinutes, isReduit);
+        tarifCours = getTarifFromGrille(totalMinutes, isReduit, grille);
       }
     }
-    const tarifCoursAnnuel = totalMinutes > 0 ? getTarifForDuree(totalMinutes, isReduit) : 0;
+    const tarifCoursAnnuel = totalMinutes > 0 ? getTarifFromGrille(totalMinutes, isReduit, grille) : 0;
 
     const tarifDanseEtudes = formData.danseEtudesOption === "1" ? tarifsSpeciaux.danseEtudes1 : formData.danseEtudesOption === "2" ? tarifsSpeciaux.danseEtudes2 : 0;
     const adhesion = fraisFixes.adhesion;
@@ -303,7 +327,7 @@ function InscriptionPageContent() {
     const totalFrais = adhesion + licenceFFD;
     const total = totalCours + totalFrais;
     return { totalMinutes, tarifCours, tarifCoursAnnuel, tarifDanseEtudes, adhesion, licenceFFD, totalCours, totalFrais, total, age };
-  }, [selectedCourses, formData.tarifReduit, formData.danseEtudesOption, formData.studentBirthDate, prorataActif, periodeActuelle]);
+  }, [selectedCourses, formData.tarifReduit, formData.danseEtudesOption, formData.studentBirthDate, prorataActif, periodeActuelle, fraisFixes, tarifsSpeciaux, grille]);
 
   // Options de versements disponibles selon le montant total
   // En prorata (arrivée en cours d'année), on limite à 3 fois maximum

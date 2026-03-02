@@ -1,13 +1,13 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight, Clock, Euro, Users, CheckCircle2 } from "lucide-react";
-import { tarifGrille, tarifsSpeciaux, fraisFixes, grilleNiveaux } from "@/lib/planning-data";
+import { useTarifs } from "@/hooks/useTarifs";
 
 export default function TarifsPage() {
+  const { grille, fraisFixes, tarifsSpeciaux } = useTarifs();
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -106,23 +106,28 @@ export default function TarifsPage() {
                     </tr>
                   </thead>
                   <tbody className="text-sm">
-                    {Object.entries(tarifGrille)
-                      .map(([minutes, tarifs], idx) => {
-                        const totalMinutes = parseInt(minutes);
-                        const heures = Math.floor(totalMinutes / 60);
-                        const mins = totalMinutes % 60;
-                        const displayTime = heures > 0 
+                    {grille.filter(row => row.duree_minutes <= 240).map((row, idx) => {
+                        const heures = Math.floor(row.duree_minutes / 60);
+                        const mins = row.duree_minutes % 60;
+                        const displayTime = heures > 0
                           ? (mins > 0 ? `${heures}h${mins}` : `${heures}h00`)
                           : `${mins}'`;
-                        
                         return (
-                          <tr key={minutes} className={idx % 2 === 0 ? 'bg-gray-100' : 'bg-white'}>
+                          <tr key={row.duree_minutes} className={idx % 2 === 0 ? 'bg-gray-100' : 'bg-white'}>
                             <td className="px-4 py-1.5 text-center font-medium">{displayTime}</td>
-                            <td className="px-4 py-1.5 text-center font-semibold">{tarifs.plein} €</td>
-                            <td className="px-4 py-1.5 text-center font-semibold">{tarifs.reduit} €</td>
+                            <td className="px-4 py-1.5 text-center font-semibold">{row.tarif_plein} €</td>
+                            <td className="px-4 py-1.5 text-center font-semibold">{row.tarif_reduit} €</td>
                           </tr>
                         );
                       })}
+                    <tr className="bg-[#F9CA24]/20 border-t-2 border-[#F9CA24]">
+                      <td colSpan={3} className="px-4 py-3 text-center text-sm text-gray-700 italic">
+                        Au-delà de 4h, le tarif est calculé automatiquement lors de votre{' '}
+                        <Link href="/inscription" className="text-[#2D3436] font-semibold underline underline-offset-2 hover:text-[#F9CA24] transition-colors">
+                          inscription en ligne
+                        </Link>
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
