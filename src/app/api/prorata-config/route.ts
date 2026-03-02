@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { sql } from '@/lib/neon';
 import { vacancesDefaut2526, type VacancesScolaires } from '@/lib/prorata-data';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const result = await sql`

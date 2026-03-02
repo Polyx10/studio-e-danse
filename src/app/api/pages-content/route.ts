@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/neon';
 
+export const dynamic = 'force-dynamic';
+
 // GET : lister les fiches publiées (filtrable par page)
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

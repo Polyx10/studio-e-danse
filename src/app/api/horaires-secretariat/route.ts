@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/neon';
 
+export const dynamic = 'force-dynamic';
+
 // Horaires prédéfinis
 const horairesReguliers = {
   mardi: '15h00 - 19h30',

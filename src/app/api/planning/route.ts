@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/neon';
 
+export const dynamic = 'force-dynamic';
+
 // GET : récupérer tous les cours actifs depuis la BDD
 export async function GET() {
   try {
