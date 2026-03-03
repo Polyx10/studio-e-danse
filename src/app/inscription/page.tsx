@@ -103,6 +103,7 @@ function InscriptionPageContent() {
   const searchParams = useSearchParams();
   const { grille, fraisFixes, tarifsSpeciaux } = useTarifs();
   const [step, setStep] = useState(1);
+  const goToStep = (n: number) => { window.scrollTo({ top: 0, behavior: 'smooth' }); setStep(n); };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [pdfTelecharge, setPdfTelecharge] = useState(false);
@@ -917,7 +918,7 @@ function InscriptionPageContent() {
                             onClick={() => {
                               if (canProceedStep1) {
                                 // Si majeur, sauter l'étape 2 (responsables) et aller directement à l'étape 3 (cours)
-                                setStep(isMajeur ? 3 : 2);
+                                goToStep(isMajeur ? 3 : 2);
                               }
                             }} 
                             disabled={!canProceedStep1} 
@@ -961,8 +962,8 @@ function InscriptionPageContent() {
                           </div>
                         </div>
                         <div className="flex justify-between pt-4">
-                          <Button type="button" variant="outline" onClick={() => setStep(1)}>Retour</Button>
-                          <Button type="button" onClick={() => setStep(3)} disabled={!canProceedStep2} className="bg-[#2D3436] hover:bg-[#3d4446]">Continuer</Button>
+                          <Button type="button" variant="outline" onClick={() => goToStep(1)}>Retour</Button>
+                          <Button type="button" onClick={() => goToStep(3)} disabled={!canProceedStep2} className="bg-[#2D3436] hover:bg-[#3d4446]">Continuer</Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -1127,8 +1128,8 @@ function InscriptionPageContent() {
                         </div>
 
                         <div className="flex justify-between pt-4">
-                          <Button type="button" variant="outline" onClick={() => setStep(isMajeur ? 1 : 2)}>Retour</Button>
-                          <Button type="button" onClick={() => setStep(4)} disabled={!canProceedStep3} className="bg-[#2D3436] hover:bg-[#3d4446]">Continuer</Button>
+                          <Button type="button" variant="outline" onClick={() => goToStep(isMajeur ? 1 : 2)}>Retour</Button>
+                          <Button type="button" onClick={() => goToStep(4)} disabled={!canProceedStep3} className="bg-[#2D3436] hover:bg-[#3d4446]">Continuer</Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -1324,8 +1325,8 @@ function InscriptionPageContent() {
                         )}
 
                         <div className="flex justify-between pt-4">
-                          <Button type="button" variant="outline" onClick={() => setStep(3)}>Retour</Button>
-                          <Button type="button" onClick={() => setStep(5)} className="bg-[#2D3436] hover:bg-[#3d4446]">Continuer</Button>
+                          <Button type="button" variant="outline" onClick={() => goToStep(3)}>Retour</Button>
+                          <Button type="button" onClick={() => goToStep(5)} className="bg-[#2D3436] hover:bg-[#3d4446]">Continuer</Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -1445,7 +1446,7 @@ function InscriptionPageContent() {
                         </div>
 
                         <div className="flex justify-between pt-4">
-                          <Button type="button" variant="outline" onClick={() => setStep(4)}>Retour</Button>
+                          <Button type="button" variant="outline" onClick={() => goToStep(4)}>Retour</Button>
                           <div className="text-right">
                             {!pdfTelecharge && (
                               <p className="text-xs text-red-600 mb-1">Veuillez d&apos;abord télécharger le récapitulatif PDF ci-dessus.</p>
