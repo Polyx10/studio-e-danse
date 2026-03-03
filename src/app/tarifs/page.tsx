@@ -86,7 +86,7 @@ export default function TarifsPage() {
           
           <div className="max-w-4xl mx-auto mb-8">
             <p className="text-gray-500 text-center text-sm italic">
-              Tableau indicatif — pour un nombre plus conséquent d&apos;heures de cours, le calcul se fait automatiquement lors de votre inscription.
+              Tableau indicatif : pour un nombre plus conséquent d&apos;heures de cours, le calcul se fait automatiquement lors de votre inscription.
             </p>
           </div>
           
