@@ -19,11 +19,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vérifier si le quota existe
+    // Vérifier si le quota existe (effectif_max depuis la table cours)
     const quotaCheck = await sql`
-      SELECT cours_id, quota_en_ligne, inscriptions_en_ligne
-      FROM cours_quotas
-      WHERE cours_id = ${coursId}
+      SELECT cq.cours_id, COALESCE(c.effectif_max, cq.quota_en_ligne, 20) as effectif_max, cq.inscriptions_en_ligne
+      FROM cours_quotas cq
+      LEFT JOIN cours c ON c.id = cq.cours_id
+      WHERE cq.cours_id = ${coursId}
     `;
 
     if (quotaCheck.length === 0) {
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
     const quota = quotaCheck[0];
 
     // Vérifier si le quota n'est pas dépassé (pour les inscriptions en ligne)
-    if (type === 'en_ligne' && quota.inscriptions_en_ligne >= quota.quota_en_ligne) {
+    if (type === 'en_ligne' && quota.inscriptions_en_ligne >= quota.effectif_max) {
       return NextResponse.json(
         { error: 'Quota atteint pour ce cours' },
         { status: 400 }
@@ -66,16 +67,17 @@ export async function POST(request: NextRequest) {
     // Récupérer les nouvelles valeurs
     const updated = await sql`
       SELECT 
-        cours_id,
-        quota_en_ligne,
-        inscriptions_en_ligne,
-        (quota_en_ligne - inscriptions_en_ligne) as places_restantes,
+        cq.cours_id,
+        COALESCE(c.effectif_max, cq.quota_en_ligne, 20) as effectif_max,
+        cq.inscriptions_en_ligne,
+        (COALESCE(c.effectif_max, cq.quota_en_ligne, 20) - cq.inscriptions_en_ligne) as places_restantes,
         CASE 
-          WHEN inscriptions_en_ligne < quota_en_ligne THEN true 
+          WHEN cq.inscriptions_en_ligne < COALESCE(c.effectif_max, cq.quota_en_ligne, 20) THEN true 
           ELSE false 
         END as disponible
-      FROM cours_quotas
-      WHERE cours_id = ${coursId}
+      FROM cours_quotas cq
+      LEFT JOIN cours c ON c.id = cq.cours_id
+      WHERE cq.cours_id = ${coursId}
     `;
 
     return NextResponse.json({
@@ -83,7 +85,7 @@ export async function POST(request: NextRequest) {
       quota: {
         disponible: updated[0].disponible,
         places_restantes: updated[0].places_restantes,
-        quota_total: updated[0].quota_en_ligne,
+        quota_total: updated[0].effectif_max,
         inscriptions: updated[0].inscriptions_en_ligne
       }
     });

@@ -12,19 +12,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Récupérer les quotas pour tous les cours demandés
+    // Récupérer les quotas pour tous les cours demandés (effectif_max depuis la table cours)
     const quotas = await sql`
       SELECT 
-        cours_id,
-        quota_en_ligne,
-        inscriptions_en_ligne,
-        (quota_en_ligne - inscriptions_en_ligne) as places_restantes,
+        cq.cours_id,
+        COALESCE(c.effectif_max, cq.quota_en_ligne, 20) as effectif_max,
+        cq.inscriptions_en_ligne,
+        (COALESCE(c.effectif_max, cq.quota_en_ligne, 20) - cq.inscriptions_en_ligne) as places_restantes,
         CASE 
-          WHEN inscriptions_en_ligne < quota_en_ligne THEN true 
+          WHEN cq.inscriptions_en_ligne < COALESCE(c.effectif_max, cq.quota_en_ligne, 20) THEN true 
           ELSE false 
         END as disponible
-      FROM cours_quotas
-      WHERE cours_id = ANY(${coursIds})
+      FROM cours_quotas cq
+      LEFT JOIN cours c ON c.id = cq.cours_id
+      WHERE cq.cours_id = ANY(${coursIds})
     `;
 
     // Créer un objet avec les quotas indexés par cours_id
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
       acc[quota.cours_id] = {
         disponible: quota.disponible,
         places_restantes: quota.places_restantes,
-        quota_total: quota.quota_en_ligne,
+        quota_total: quota.effectif_max,
         inscriptions: quota.inscriptions_en_ligne
       };
       return acc;
