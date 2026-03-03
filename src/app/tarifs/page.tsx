@@ -85,11 +85,8 @@ export default function TarifsPage() {
           <h2 className="text-3xl font-bold text-gray-900 mb-4 text-center">TARIFS</h2>
           
           <div className="max-w-4xl mx-auto mb-8">
-            <p className="text-gray-700 text-center mb-2">
-              Une famille avec 1 seule adhésion utilise la grille tarifaire "Tarif Plein"
-            </p>
-            <p className="text-gray-700 text-center">
-              Une famille avec 2, 3, ... adhésions utilise la grille tarifaire "Tarif Plein" pour le membre de la famille qui a le plus de cours, puis la grille "Tarif Réduit" pour les autres.
+            <p className="text-gray-500 text-center text-sm italic">
+              Tableau indicatif — pour un nombre plus conséquent d&apos;heures de cours, le calcul se fait automatiquement lors de votre inscription.
             </p>
           </div>
           
@@ -120,14 +117,6 @@ export default function TarifsPage() {
                           </tr>
                         );
                       })}
-                    <tr className="bg-[#F9CA24]/20 border-t-2 border-[#F9CA24]">
-                      <td colSpan={3} className="px-4 py-3 text-center text-sm text-gray-700 italic">
-                        Au-delà de 4h, le tarif est calculé automatiquement lors de votre{' '}
-                        <Link href="/inscription" className="text-[#2D3436] font-semibold underline underline-offset-2 hover:text-[#F9CA24] transition-colors">
-                          inscription en ligne
-                        </Link>
-                      </td>
-                    </tr>
                   </tbody>
                 </table>
               </div>
