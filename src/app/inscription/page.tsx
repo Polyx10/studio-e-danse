@@ -696,8 +696,8 @@ function InscriptionPageContent() {
           <div>
             <span className="block text-base font-bold text-red-600 mb-1">⚠️ IMPORTANT</span>
             {preinscriptionEffective
-              ? <p className="text-sm text-[#2D3436]">Votre pré-inscription sera validée <strong>uniquement après règlement des 90&nbsp;€ de pré-inscription</strong> <strong>au secrétariat</strong>, muni(e) du <u>récapitulatif fourni en fin de formulaire</u>. <strong>Merci de vous présenter dans un délai de 5 jours.</strong></p>
-              : <p className="text-sm text-[#2D3436]">Votre inscription sera confirmée lors de votre venue <strong>au secrétariat</strong> <strong>pour effectuer votre premier règlement</strong>, muni(e) du <u>récapitulatif fourni en fin de formulaire</u>. <strong>Merci de vous présenter dans un délai de 5 jours.</strong></p>
+              ? <p className="text-sm text-[#2D3436]">Votre pré-inscription sera validée <strong>uniquement après règlement des 90&nbsp;€ de pré-inscription</strong> <strong>au secrétariat</strong>, muni(e) du <u>récapitulatif fourni en fin de formulaire</u>. <strong>Merci de vous présenter dans un délai de 3 jours.</strong></p>
+              : <p className="text-sm text-[#2D3436]">Votre inscription sera confirmée lors de votre venue <strong>au secrétariat</strong> <strong>pour effectuer votre premier règlement</strong>, muni(e) du <u>récapitulatif fourni en fin de formulaire</u>. <strong>Merci de vous présenter dans un délai de 3 jours.</strong></p>
             }
           </div>
         </div>
@@ -1334,7 +1334,7 @@ function InscriptionPageContent() {
                                 {preinscriptionTousActive && " (ouverte à tous)"}
                               </p>
                               <p className="text-sm text-green-700">
-                                Un acompte de <strong>{montantPreinscription} €</strong> est demandé sous 5 jours pour valider votre inscription.
+                                Un acompte de <strong>{montantPreinscription} €</strong> est demandé sous 3 jours pour valider votre inscription.
                               </p>
                               <p className="text-xs text-green-600 mt-1">
                                 Composition : Adhésion {tarifCalcule.adhesion}€ + Licence FFD {tarifCalcule.licenceFFD}€ + Acompte cours {montantPreinscription - tarifCalcule.adhesion - tarifCalcule.licenceFFD}€

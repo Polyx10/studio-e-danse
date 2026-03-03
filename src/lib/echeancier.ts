@@ -38,7 +38,7 @@ export function calculerEcheancierSansCentimes(
     const montantRestantCentimes = totalCentimes - montantPreinscriptionCentimes;
 
     echeances.push({
-      mois: 'Préinscription (sous 5 jours)',
+      mois: 'Préinscription (sous 3 jours)',
       montant: montantPreinscriptionCentimes / 100,
       details: 'Adhésion 12€ + Licence 24€ + Acompte cours 54€'
     });

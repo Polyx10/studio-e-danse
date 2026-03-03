@@ -99,7 +99,7 @@ export function genererPDFEcheancier(donnees: DonneesEcheancier) {
   
   doc.setFontSize(9);
   if (donnees.avecPreinscription) {
-    doc.text('• La préinscription doit être réglée dans les 5 jours suivant l\'inscription', margeGauche + 5, y);
+    doc.text('• La préinscription doit être réglée dans les 3 jours suivant l\'inscription', margeGauche + 5, y);
     y += 6;
     doc.text('• Elle comprend : Adhésion (12€) + Licence FFD (24€) + 54€ de cours', margeGauche + 5, y);
     y += 6;
