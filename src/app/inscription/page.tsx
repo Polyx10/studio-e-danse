@@ -650,13 +650,16 @@ function InscriptionPageContent() {
         </div>
       </section>
 
-      <section className="bg-amber-50 border-b border-amber-200 py-4">
-        <div className="container mx-auto px-4 flex items-center gap-3 text-[#2D3436]">
-          <Info className="h-5 w-5 flex-shrink-0" />
-          {preinscriptionEffective
-            ? <p className="text-sm"><strong>Important :</strong> Votre pré-inscription sera validée uniquement après règlement des 90&nbsp;€ de pré-inscription au secrétariat, muni(e) du récapitulatif fourni en fin de formulaire.</p>
-            : <p className="text-sm"><strong>Important :</strong> Votre inscription sera confirmée lors de votre venue au secrétariat pour effectuer votre premier règlement, muni(e) du récapitulatif fourni en fin de formulaire.</p>
-          }
+      <section className="bg-amber-100 border-b-2 border-amber-300 py-5">
+        <div className="container mx-auto px-4 flex items-start gap-4 text-[#2D3436]">
+          <Info className="h-6 w-6 flex-shrink-0 text-amber-600 mt-0.5" />
+          <div>
+            <span className="block text-base font-bold text-amber-800 mb-1">Important</span>
+            {preinscriptionEffective
+              ? <p className="text-sm text-[#2D3436]">Votre pré-inscription sera validée uniquement après règlement des <strong>90&nbsp;€ de pré-inscription</strong> au secrétariat, muni(e) du récapitulatif fourni en fin de formulaire.</p>
+              : <p className="text-sm text-[#2D3436]">Votre inscription sera confirmée lors de votre venue au secrétariat pour effectuer votre <strong>premier règlement</strong>, muni(e) du récapitulatif fourni en fin de formulaire.</p>
+            }
+          </div>
         </div>
       </section>
 
