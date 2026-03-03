@@ -1396,13 +1396,10 @@ function InscriptionPageContent() {
                               ))}
                             </div>
                             {versementsDisponibles.length === 1 && (
-                              <p className="text-xs text-gray-500">Le paiement échelonné en 2 ou 3 fois est disponible à partir de 270,00 €, en 10 fois à partir de 500,00 €.</p>
+                              <p className="text-xs text-gray-500">Le paiement échelonné en 2 ou 3 fois est disponible à partir de 270,00 €. Le paiement en 10 fois est réservé aux inscriptions effectuées en période de préinscription ou en septembre (tarif annuel complet).</p>
                             )}
                             {(versementsDisponibles.length === 2 || versementsDisponibles.length === 3) && !versementsDisponibles.includes("10") && (
-                              <p className="text-xs text-gray-500">Le paiement en 10 fois est disponible à partir de 500,00 €.</p>
-                            )}
-                            {!formData.modePaiement.includes("Chèque") && parseInt(formData.nombreVersements) > 1 && (
-                              <p className="text-xs text-amber-700 font-medium">Le paiement échelonné n&apos;est disponible que par chèque.</p>
+                              <p className="text-xs text-gray-500">Le paiement en 10 fois est réservé aux inscriptions effectuées en période de préinscription ou en septembre (tarif annuel complet).</p>
                             )}
                           </div>
                         </div>
