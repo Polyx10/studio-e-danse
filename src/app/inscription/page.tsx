@@ -426,6 +426,7 @@ function InscriptionPageContent() {
   // En prorata (arrivée en cours d'année), on limite à 3 fois maximum
   const versementsDisponibles = useMemo(() => {
     const options = ["1"];
+    if (tarifCalcule.total >= 270) options.push("2");
     if (tarifCalcule.total >= 270) options.push("3");
     if (!prorataActif && tarifCalcule.total >= 500) options.push("10");
     return options;
@@ -1395,10 +1396,10 @@ function InscriptionPageContent() {
                               ))}
                             </div>
                             {versementsDisponibles.length === 1 && (
-                              <p className="text-xs text-gray-500">Le paiement échelonné en 3 fois est disponible à partir de 270,00 € de cours, en 10 fois à partir de 500,00 €.</p>
+                              <p className="text-xs text-gray-500">Le paiement échelonné en 2 ou 3 fois est disponible à partir de 270,00 €, en 10 fois à partir de 500,00 €.</p>
                             )}
-                            {versementsDisponibles.length === 2 && (
-                              <p className="text-xs text-gray-500">Le paiement en 10 fois est disponible à partir de 500,00 € de tarif cours.</p>
+                            {(versementsDisponibles.length === 2 || versementsDisponibles.length === 3) && !versementsDisponibles.includes("10") && (
+                              <p className="text-xs text-gray-500">Le paiement en 10 fois est disponible à partir de 500,00 €.</p>
                             )}
                             {!formData.modePaiement.includes("Chèque") && parseInt(formData.nombreVersements) > 1 && (
                               <p className="text-xs text-amber-700 font-medium">Le paiement échelonné n&apos;est disponible que par chèque.</p>

@@ -106,7 +106,8 @@ export async function POST(request: Request) {
 
     // Déterminer le tarif du nouvel inscrit
     // plein si strictement plus de minutes que tous les existants, réduit sinon
-    const tarifReduitNouvel = minutesNouvel <= maxMinutes;
+    // Si pas encore de cours sélectionnés (0 minutes), ne pas forcer le tarif réduit
+    const tarifReduitNouvel = minutesNouvel > 0 && minutesNouvel <= maxMinutes;
 
     // Y a-t-il un basculement nécessaire ? (nouvel inscrit > membre principal existant)
     const basculementNecessaire = minutesNouvel > maxMinutes && membrePrincipal && !membrePrincipal.tarif_reduit;
