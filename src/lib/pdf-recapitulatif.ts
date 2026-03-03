@@ -161,21 +161,26 @@ export function genererPDFRecapitulatif(donnees: DonneesInscription) {
 
   // ============ FRATRIE / TARIF FAMILLE ============
   if (donnees.membreFamille) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    const familleLabel = 'Inscription famille :';
+    const familleTexte = `Membre(s) de la même famille déjà inscrit(s) : ${donnees.membreFamille}`;
+    const familleLines = doc.splitTextToSize(familleTexte, md - mg - 44);
+    const familleBoxH = Math.max(14, 4 + familleLines.length * 5 + 3);
     doc.setFillColor(255, 248, 220);
-    doc.roundedRect(mg, y - 4, md - mg, 14, 2, 2, 'F');
+    doc.roundedRect(mg, y - 4, md - mg, familleBoxH, 2, 2, 'F');
     doc.setDrawColor(230, 184, 0);
     doc.setLineWidth(0.6);
-    doc.roundedRect(mg, y - 4, md - mg, 14, 2, 2, 'S');
+    doc.roundedRect(mg, y - 4, md - mg, familleBoxH, 2, 2, 'S');
     doc.setDrawColor(0, 0, 0);
     doc.setLineWidth(0.2);
-    doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(120, 80, 0);
-    doc.text('Inscription famille :', mg + 4, y + 3);
+    doc.text(familleLabel, mg + 4, y + 3);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Membre(s) de la même famille déjà inscrit(s) : ${donnees.membreFamille}`, mg + 40, y + 3);
+    doc.text(familleLines, mg + 40, y + 3);
     doc.setTextColor(0, 0, 0);
-    y += 22;
+    y += familleBoxH + 8;
   }
 
   // ============ RESPONSABLES LÉGAUX ============
