@@ -687,6 +687,8 @@ function InscriptionPageContent() {
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Inscription 2025-2026</h1>
           <p className="text-xl text-gray-300">Le tarif sera calculé automatiquement selon vos choix.</p>
+          {/* DEBUG TEMPORAIRE - À SUPPRIMER */}
+          <p className="text-xs text-gray-400 mt-2">debug: mode={prorataConfig.prorata_mode} | période={periodeActuelle} | prorata={prorataActif ? 'oui' : 'non'} | hiver={prorataConfig.vacances.hiver_debut}</p>
         </div>
       </section>
 
