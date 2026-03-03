@@ -140,10 +140,10 @@ export async function POST(request: Request) {
         const telEleve = validatedData.student_phone || null;
         const emailResp1 = validatedData.responsable1_email || null;
         const telResp1 = validatedData.responsable1_phone || null;
+        const familleMembreManuelId = (body as Record<string, unknown>).famille_membre_manuel_id as string | null || null;
 
         // Chercher tous les membres de la même famille déjà inscrits cette saison
-        console.log(`[famille] Recherche pour nouvelId=${nouvelId}, saison=${saisonCourante}, emailEleve=${emailEleve}, telEleve=${telEleve}, emailResp1=${emailResp1}, telResp1=${telResp1}`);
-        const membresFamille = await sql`
+        let membresFamille = await sql`
           SELECT id, student_name, selected_courses, tarif_reduit, tarif_cours, adhesion, licence_ffd, tarif_total
           FROM inscriptions
           WHERE saison = ${saisonCourante}
@@ -156,6 +156,40 @@ export async function POST(request: Request) {
               OR (${telResp1}::text IS NOT NULL AND (student_phone = ${telResp1} OR responsable1_phone = ${telResp1}))
             )
         `;
+
+        // Rattachement famille manuel (majeur sans lien email/téléphone commun)
+        if (familleMembreManuelId) {
+          const dejaDans = membresFamille.some((m: Record<string, unknown>) => m.id === familleMembreManuelId);
+          if (!dejaDans) {
+            // Récupérer le membre manuel + tous les membres de sa famille via rattachement_famille existant
+            const membreManuel = await sql`
+              SELECT id, student_name, selected_courses, tarif_reduit, tarif_cours, adhesion, licence_ffd, tarif_total, rattachement_famille
+              FROM inscriptions
+              WHERE id = ${familleMembreManuelId} AND saison = ${saisonCourante} AND statut != 'annule'
+            `;
+            if (membreManuel.length > 0) {
+              // Ajouter le membre manuel
+              membresFamille = [...membresFamille, ...membreManuel];
+              // Si ce membre a déjà une famille étendue, la récupérer aussi
+              const rattachIds = await sql`
+                SELECT id, student_name, selected_courses, tarif_reduit, tarif_cours, adhesion, licence_ffd, tarif_total
+                FROM inscriptions
+                WHERE saison = ${saisonCourante}
+                  AND statut != 'annule'
+                  AND id != ${nouvelId}
+                  AND id != ${familleMembreManuelId}
+                  AND rattachement_famille IS NOT NULL
+                  AND rattachement_famille LIKE ${'%' + (membreManuel[0] as Record<string, unknown>).student_name + '%'}
+              `;
+              if (rattachIds.length > 0) {
+                membresFamille = [...membresFamille, ...rattachIds.filter((r: Record<string, unknown>) =>
+                  !membresFamille.some((m: Record<string, unknown>) => m.id === r.id)
+                )];
+              }
+            }
+          }
+        }
+
         console.log(`[famille] Membres trouvés : ${membresFamille.length}`, membresFamille.map((m: Record<string, unknown>) => m.student_name));
 
         if (membresFamille.length > 0) {

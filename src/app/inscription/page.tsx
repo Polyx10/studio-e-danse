@@ -165,6 +165,43 @@ function InscriptionPageContent() {
     }
   };
 
+  // Rattachement famille manuel (pour majeurs sans responsable commun)
+  const [familleManuelleChecked, setFamilleManuelleChecked] = useState(false);
+  const [famNomVerif, setFamNomVerif] = useState('');
+  const [famPrenomVerif, setFamPrenomVerif] = useState('');
+  const [famBirthDay, setFamBirthDay] = useState('');
+  const [famBirthMonth, setFamBirthMonth] = useState('');
+  const [famBirthYear, setFamBirthYear] = useState('');
+  const [famVerifEnCours, setFamVerifEnCours] = useState(false);
+  const [famVerifMsg, setFamVerifMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [famMembreVerifie, setFamMembreVerifie] = useState<{ id: string; nom_complet: string } | null>(null);
+
+  const handleVerifierMembreFamille = async () => {
+    if (!famNomVerif || !famPrenomVerif || !famBirthDay || !famBirthMonth || !famBirthYear) return;
+    const dateNaissance = `${famBirthYear}-${famBirthMonth}-${famBirthDay}`;
+    setFamVerifEnCours(true);
+    setFamVerifMsg(null);
+    try {
+      const res = await fetch('/api/verify-membre-famille', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nom: famNomVerif, prenom: famPrenomVerif, dateNaissance }),
+      });
+      const data = await res.json();
+      if (data.found) {
+        setFamMembreVerifie(data.membre);
+        setFamVerifMsg({ type: 'ok', text: `✅ ${data.membre.nom_complet} trouvé(e) — rattachement famille confirmé.` });
+      } else {
+        setFamMembreVerifie(null);
+        setFamVerifMsg({ type: 'err', text: data.message || 'Adhérent non trouvé dans les inscriptions de cette saison.' });
+      }
+    } catch {
+      setFamVerifMsg({ type: 'err', text: 'Erreur réseau lors de la vérification.' });
+    } finally {
+      setFamVerifEnCours(false);
+    }
+  };
+
   // Détection famille
   const [familleDetectee, setFamilleDetectee] = useState<{ membres: { id: string; nom: string; minutes: number }[]; membrePrincipalNom: string | null } | null>(null);
   const [familleBasculerId, setFamilleBasculerId] = useState<string | null>(null);
@@ -477,6 +514,7 @@ function InscriptionPageContent() {
         adhesion: tarifCalcule.adhesion,
         licence_ffd: tarifCalcule.licenceFFD,
         tarif_famille_bascule_id: familleBasculerId || null,
+        famille_membre_manuel_id: famMembreVerifie?.id || null,
       };
 
       const response = await fetch('/api/submit-inscription', {
@@ -912,6 +950,98 @@ function InscriptionPageContent() {
                             </div>
                           </>
                         )}
+                        {/* Rattachement famille manuel — uniquement pour les majeurs */}
+                        {isMajeur && (
+                          <div className="flex items-start gap-3 pt-2">
+                            <input
+                              type="checkbox"
+                              id="familleManuelle"
+                              checked={familleManuelleChecked}
+                              onChange={e => {
+                                setFamilleManuelleChecked(e.target.checked);
+                                if (!e.target.checked) {
+                                  setFamNomVerif('');
+                                  setFamPrenomVerif('');
+                                  setFamBirthDay('');
+                                  setFamBirthMonth('');
+                                  setFamBirthYear('');
+                                  setFamVerifMsg(null);
+                                  setFamMembreVerifie(null);
+                                }
+                              }}
+                              className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-[#2D3436] cursor-pointer"
+                            />
+                            <label htmlFor="familleManuelle" className="text-sm text-gray-700 cursor-pointer">
+                              J&apos;appartiens à une famille déjà inscrite à STUDIO e cette saison <span className="text-gray-400">(tarif famille)</span>
+                            </label>
+                          </div>
+                        )}
+
+                        {isMajeur && familleManuelleChecked && (
+                          <div className="border border-amber-300 bg-amber-50 rounded-lg p-4 space-y-3">
+                            <p className="text-sm font-semibold text-amber-900">Indiquez le nom, prénom et date de naissance d&apos;un membre de votre famille déjà inscrit cette saison</p>
+                            <div className="grid sm:grid-cols-2 gap-3">
+                              <div className="space-y-1">
+                                <Label className="text-xs">Nom *</Label>
+                                <Input
+                                  value={famNomVerif}
+                                  onChange={e => { setFamNomVerif(e.target.value); setFamMembreVerifie(null); setFamVerifMsg(null); }}
+                                  placeholder="Nom de famille"
+                                  className="h-8 text-sm"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-xs">Prénom *</Label>
+                                <Input
+                                  value={famPrenomVerif}
+                                  onChange={e => { setFamPrenomVerif(e.target.value); setFamMembreVerifie(null); setFamVerifMsg(null); }}
+                                  placeholder="Prénom"
+                                  className="h-8 text-sm"
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Date de naissance *</Label>
+                              <div className="flex gap-2">
+                                <Input
+                                  value={famBirthDay}
+                                  onChange={e => { setFamBirthDay(e.target.value.replace(/\D/g, '').slice(0, 2)); setFamMembreVerifie(null); setFamVerifMsg(null); }}
+                                  placeholder="JJ"
+                                  className="h-8 text-sm w-16 text-center"
+                                  maxLength={2}
+                                />
+                                <Input
+                                  value={famBirthMonth}
+                                  onChange={e => { setFamBirthMonth(e.target.value.replace(/\D/g, '').slice(0, 2)); setFamMembreVerifie(null); setFamVerifMsg(null); }}
+                                  placeholder="MM"
+                                  className="h-8 text-sm w-16 text-center"
+                                  maxLength={2}
+                                />
+                                <Input
+                                  value={famBirthYear}
+                                  onChange={e => { setFamBirthYear(e.target.value.replace(/\D/g, '').slice(0, 4)); setFamMembreVerifie(null); setFamVerifMsg(null); }}
+                                  placeholder="AAAA"
+                                  className="h-8 text-sm w-20 text-center"
+                                  maxLength={4}
+                                />
+                                <Button
+                                  type="button"
+                                  onClick={handleVerifierMembreFamille}
+                                  disabled={famVerifEnCours || !famNomVerif || !famPrenomVerif || famBirthDay.length < 2 || famBirthMonth.length < 2 || famBirthYear.length < 4}
+                                  className="h-8 text-xs bg-amber-600 hover:bg-amber-700 text-white"
+                                >
+                                  {famVerifEnCours ? '...' : 'Vérifier'}
+                                </Button>
+                              </div>
+                            </div>
+                            {famVerifMsg && (
+                              <p className={`text-sm ${famVerifMsg.type === 'ok' ? 'text-green-700' : 'text-red-600'}`}>
+                                {famVerifMsg.text}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
                         <div className="flex justify-end pt-4">
                           <Button 
                             type="button" 
