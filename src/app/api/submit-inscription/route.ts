@@ -159,6 +159,21 @@ export async function POST(request: Request) {
         console.log(`[famille] Membres trouvés : ${membresFamille.length}`, membresFamille.map((m: Record<string, unknown>) => m.student_name));
 
         if (membresFamille.length > 0) {
+          // Mettre à jour rattachement_famille pour tous les membres (existants + nouveau)
+          type MembreBase = { id: string; student_name: string };
+          const membresFamilleTyped = membresFamille as MembreBase[];
+          const tousLesIds = [nouvelId, ...membresFamilleTyped.map(m => m.id)];
+          const tousLesNoms = [nouvelNom, ...membresFamilleTyped.map(m => m.student_name)];
+          // Pour chaque membre, la liste des autres membres
+          for (const membreId of tousLesIds) {
+            const autresNoms = tousLesNoms.filter((_, i) => tousLesIds[i] !== membreId).join(', ');
+            await sql`
+              UPDATE inscriptions
+              SET rattachement_famille = ${autresNoms}
+              WHERE id = ${membreId}
+            `;
+          }
+
           // Calculer les minutes du nouvel inscrit
           const minutesNouvel = validatedData.selected_courses.reduce((total: number, id: string) => {
             const c = planningCours.find(p => p.id === id);
