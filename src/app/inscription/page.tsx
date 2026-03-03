@@ -228,7 +228,7 @@ function InscriptionPageContent() {
   const [prorataConfig, setProrataConfig] = useState<{ vacances: VacancesScolaires; prorata_mode: string; prorata_periode_forcee: string | null }>({ vacances: vacancesDefaut2526, prorata_mode: 'auto', prorata_periode_forcee: null });
 
   useEffect(() => {
-    fetch('/api/prorata-config').then(r => r.json()).then(data => setProrataConfig(data)).catch(() => {});
+    fetch('/api/prorata-config', { cache: 'no-store' }).then(r => r.json()).then(data => setProrataConfig(data)).catch(() => {});
   }, []);
   
   const [formData, setFormData] = useState({
