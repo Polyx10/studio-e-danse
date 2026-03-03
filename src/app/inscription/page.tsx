@@ -656,8 +656,8 @@ function InscriptionPageContent() {
           <div>
             <span className="block text-base font-bold text-red-600 mb-1">⚠️ IMPORTANT</span>
             {preinscriptionEffective
-              ? <p className="text-sm text-[#2D3436]">Votre pré-inscription sera validée <strong>uniquement après règlement des 90&nbsp;€ de pré-inscription</strong> au secrétariat, muni(e) du récapitulatif fourni en fin de formulaire.</p>
-              : <p className="text-sm text-[#2D3436]">Votre inscription sera confirmée lors de votre venue au secrétariat pour effectuer votre <strong>premier règlement</strong>, muni(e) du récapitulatif fourni en fin de formulaire.</p>
+              ? <p className="text-sm text-[#2D3436]">Votre pré-inscription sera validée <strong>uniquement après règlement des 90&nbsp;€ de pré-inscription</strong> <strong>au secrétariat</strong>, muni(e) du récapitulatif fourni en fin de formulaire.</p>
+              : <p className="text-sm text-[#2D3436]">Votre inscription sera confirmée lors de votre venue <strong>au secrétariat</strong> pour effectuer votre <strong>premier règlement</strong>, muni(e) du récapitulatif fourni en fin de formulaire.</p>
             }
           </div>
         </div>
