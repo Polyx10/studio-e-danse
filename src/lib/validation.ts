@@ -24,7 +24,7 @@ export const inscriptionSchema = z.object({
   student_city: z.string().max(100, 'Le nom de la ville est trop long').nullable().optional(),
   student_phone: z.string()
     .transform(val => val ? val.replace(/[\s\-\.\(\)]/g, '') : '')
-    .refine(val => val === '' || /^(\+\d{7,15}|0[1-9]\d{8})$/.test(val), {
+    .refine(val => val === '' || /^(\+?\d{7,15})$/.test(val), {
       message: 'Numéro de téléphone invalide'
     })
     .transform(val => val === '' ? null : val)
@@ -36,7 +36,7 @@ export const inscriptionSchema = z.object({
   responsable1_name: z.union([z.string().max(100, 'Le nom est trop long'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
   responsable1_phone: z.string()
     .transform(val => val ? val.replace(/[\s\-\.\(\)]/g, '') : '')
-    .refine(val => val === '' || /^(\+\d{7,15}|0[1-9]\d{8})$/.test(val), {
+    .refine(val => val === '' || /^(\+?\d{7,15})$/.test(val), {
       message: 'Numéro de téléphone invalide'
     })
     .transform(val => val === '' ? null : val)
@@ -49,7 +49,7 @@ export const inscriptionSchema = z.object({
   responsable2_city: z.union([z.string().max(100, 'Le nom de la ville est trop long'), z.literal('')]).transform(val => val === '' ? null : val).nullable().optional(),
   responsable2_phone: z.string()
     .transform(val => val ? val.replace(/[\s\-\.\(\)]/g, '') : '')
-    .refine(val => val === '' || /^(\+\d{7,15}|0[1-9]\d{8})$/.test(val), {
+    .refine(val => val === '' || /^(\+?\d{7,15})$/.test(val), {
       message: 'Numéro de téléphone invalide'
     })
     .transform(val => val === '' ? null : val)

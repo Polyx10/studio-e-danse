@@ -607,15 +607,22 @@ function InscriptionPageContent() {
   }, []);
 
   const isMajeur = tarifCalcule.age >= 18;
+  const phoneRegex = /^(\+?\d{7,15})$/;
+  const isValidPhone = (val: string) => val === '' || phoneRegex.test(val.replace(/[\s\-\.\(\)]/g, ''));
+
   const canProceedStep1 = Boolean(
     formData.studentLastName && 
     formData.studentFirstName && 
     formData.studentBirthDate &&
-    (!isMajeur || (formData.studentAddress && formData.studentPostalCode && formData.studentCity && formData.studentPhone && formData.studentEmail))
+    (!isMajeur || (
+      formData.studentAddress && formData.studentPostalCode && formData.studentCity &&
+      formData.studentPhone && isValidPhone(formData.studentPhone) &&
+      formData.studentEmail
+    ))
   );
   const canProceedStep2 = Boolean(
     formData.responsable1Name && 
-    formData.responsable1Phone && 
+    formData.responsable1Phone && isValidPhone(formData.responsable1Phone) &&
     formData.responsable1Email &&
     formData.studentAddress &&
     formData.studentPostalCode &&
@@ -667,7 +674,7 @@ function InscriptionPageContent() {
                     <AlertCircle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" />
                     <div className="text-left">
                       <h4 className="font-semibold text-[#2D3436] mb-2">Montant à régler</h4>
-                      <p className="text-2xl font-bold text-[#2D3436] mb-2">{tarifCalcule.total} €</p>
+                      <p className="text-2xl font-bold text-[#2D3436] mb-2">{tarifCalcule.total.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</p>
                       <p className="text-[#2D3436] text-sm">Rendez-vous au secrétariat pour finaliser.</p>
                     </div>
                   </div>
@@ -933,6 +940,9 @@ function InscriptionPageContent() {
                                   placeholder="06 12 34 56 78"
                                   required
                                 />
+                                {formData.studentPhone && !isValidPhone(formData.studentPhone) && (
+                                  <p className="text-xs text-red-500">Format invalide. Exemples : 06 12 34 56 78, +33 6 12 34 56 78</p>
+                                )}
                               </div>
                               <div className="space-y-2">
                                 <Label htmlFor="studentEmail">
@@ -1075,7 +1085,7 @@ function InscriptionPageContent() {
                             <div className="space-y-2"><Label>Ville *</Label><Input name="studentCity" value={formData.studentCity} onChange={handleInputChange} placeholder="Brest" required /></div>
                           </div>
                           <div className="grid sm:grid-cols-2 gap-4">
-                            <div className="space-y-2"><Label>Téléphone *</Label><Input name="responsable1Phone" type="tel" value={formData.responsable1Phone} onChange={handleInputChange} required /></div>
+                            <div className="space-y-2"><Label>Téléphone *</Label><Input name="responsable1Phone" type="tel" value={formData.responsable1Phone} onChange={handleInputChange} required />{formData.responsable1Phone && !isValidPhone(formData.responsable1Phone) && (<p className="text-xs text-red-500">Format invalide. Exemples : 06 12 34 56 78, +33 6 12 34 56 78</p>)}</div>
                             <div className="space-y-2"><Label>Courriel *</Label><Input name="responsable1Email" type="email" value={formData.responsable1Email} onChange={handleInputChange} required /></div>
                           </div>
                         </div>
@@ -1088,7 +1098,7 @@ function InscriptionPageContent() {
                             <div className="space-y-2"><Label>Ville</Label><Input name="responsable2City" value={formData.responsable2City} onChange={handleInputChange} placeholder="Brest" /></div>
                           </div>
                           <div className="grid sm:grid-cols-2 gap-4">
-                            <div className="space-y-2"><Label>Téléphone</Label><Input name="responsable2Phone" type="tel" value={formData.responsable2Phone} onChange={handleInputChange} /></div>
+                            <div className="space-y-2"><Label>Téléphone</Label><Input name="responsable2Phone" type="tel" value={formData.responsable2Phone} onChange={handleInputChange} />{formData.responsable2Phone && !isValidPhone(formData.responsable2Phone) && (<p className="text-xs text-red-500">Format invalide. Exemples : 06 12 34 56 78, +33 6 12 34 56 78</p>)}</div>
                             <div className="space-y-2"><Label>Courriel</Label><Input name="responsable2Email" type="email" value={formData.responsable2Email} onChange={handleInputChange} /></div>
                           </div>
                         </div>
