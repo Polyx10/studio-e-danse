@@ -1689,11 +1689,7 @@ function InscriptionPageContent() {
                               </div>
                             </div>
                           )}
-                          <div className="bg-red-50 border-2 border-red-500 rounded-lg p-4 mt-2">
-                            <p className="text-sm text-red-800 font-semibold mb-1">⚠️ Téléchargement obligatoire</p>
-                            <p className="text-xs text-red-700 mb-3">
-                              Ce récapitulatif PDF doit être téléchargé, imprimé et apporté au secrétariat de STUDIO e lors du règlement.
-                            </p>
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-2">
                             <Button
                               type="button"
                               size="sm"
@@ -1746,10 +1742,9 @@ function InscriptionPageContent() {
                                   nomSignature: formData.signatureName,
                                   dateInscription: new Date().toLocaleDateString('fr-FR'),
                                 });
-                                setPdfTelecharge(true);
                               }}
                             >
-                              {pdfTelecharge ? '✓ Récapitulatif PDF téléchargé' : 'Télécharger le récapitulatif PDF'}
+                              Aperçu du récapitulatif PDF
                             </Button>
                           </div>
                         </div>
@@ -1767,10 +1762,7 @@ function InscriptionPageContent() {
                         <div className="flex justify-between pt-4">
                           <Button type="button" variant="outline" onClick={() => goToStep(4)}>Retour</Button>
                           <div className="text-right">
-                            {!pdfTelecharge && (
-                              <p className="text-xs text-red-600 mb-1">Veuillez d&apos;abord télécharger le récapitulatif PDF ci-dessus.</p>
-                            )}
-                            <Button type="submit" disabled={!canSubmit || isSubmitting || !pdfTelecharge} className="bg-[#F9CA24] text-[#2D3436] hover:bg-amber-400">
+                            <Button type="submit" disabled={!canSubmit || isSubmitting} className="bg-[#F9CA24] text-[#2D3436] hover:bg-amber-400">
                               {isSubmitting ? "Envoi..." : "Valider mon inscription"}
                             </Button>
                           </div>
