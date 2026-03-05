@@ -143,10 +143,12 @@ function InscriptionPageContent() {
           studentCity: data.adherent.student_city || prev.studentCity,
           studentPhone: data.adherent.student_phone || prev.studentPhone,
           studentEmail: data.adherent.student_email || prev.studentEmail,
-          responsable1Name: data.adherent.responsable1_name || prev.responsable1Name,
+          responsable1LastName: data.adherent.responsable1_name ? data.adherent.responsable1_name.split(' ').slice(0, 1).join(' ') : prev.responsable1LastName,
+          responsable1FirstName: data.adherent.responsable1_name ? data.adherent.responsable1_name.split(' ').slice(1).join(' ') : prev.responsable1FirstName,
           responsable1Phone: data.adherent.responsable1_phone || prev.responsable1Phone,
           responsable1Email: data.adherent.responsable1_email || prev.responsable1Email,
-          responsable2Name: data.adherent.responsable2_name || prev.responsable2Name,
+          responsable2LastName: data.adherent.responsable2_name ? data.adherent.responsable2_name.split(' ').slice(0, 1).join(' ') : prev.responsable2LastName,
+          responsable2FirstName: data.adherent.responsable2_name ? data.adherent.responsable2_name.split(' ').slice(1).join(' ') : prev.responsable2FirstName,
           responsable2Phone: data.adherent.responsable2_phone || prev.responsable2Phone,
           responsable2Email: data.adherent.responsable2_email || prev.responsable2Email,
           responsable2Address: data.adherent.responsable2_address || prev.responsable2Address,
@@ -242,10 +244,12 @@ function InscriptionPageContent() {
     studentCity: "",
     studentPhone: "",
     studentEmail: "",
-    responsable1Name: "",
+    responsable1LastName: "",
+    responsable1FirstName: "",
     responsable1Phone: "",
     responsable1Email: "",
-    responsable2Name: "",
+    responsable2LastName: "",
+    responsable2FirstName: "",
     responsable2Address: "",
     responsable2PostalCode: "",
     responsable2City: "",
@@ -488,10 +492,10 @@ function InscriptionPageContent() {
         student_city: formData.studentCity || null,
         student_phone: formData.studentPhone || null,
         student_email: formData.studentEmail || null,
-        responsable1_name: formData.responsable1Name,
+        responsable1_name: `${formData.responsable1LastName} ${formData.responsable1FirstName}`.trim(),
         responsable1_phone: formData.responsable1Phone,
         responsable1_email: formData.responsable1Email,
-        responsable2_name: formData.responsable2Name || null,
+        responsable2_name: formData.responsable2LastName ? `${formData.responsable2LastName} ${formData.responsable2FirstName}`.trim() : null,
         responsable2_address: formData.responsable2Address || null,
         responsable2_postal_code: formData.responsable2PostalCode || null,
         responsable2_city: formData.responsable2City || null,
@@ -621,7 +625,7 @@ function InscriptionPageContent() {
     ))
   );
   const canProceedStep2 = Boolean(
-    formData.responsable1Name && 
+    formData.responsable1LastName && formData.responsable1FirstName &&
     formData.responsable1Phone && isValidPhone(formData.responsable1Phone) &&
     formData.responsable1Email &&
     formData.studentAddress &&
@@ -1079,7 +1083,10 @@ function InscriptionPageContent() {
                       <CardContent className="space-y-8">
                         <div className="space-y-4">
                           <h3 className="font-semibold border-b pb-2">Responsable légal 1 *</h3>
-                          <div className="space-y-2"><Label>Nom & Prénom *</Label><Input name="responsable1Name" value={formData.responsable1Name} onChange={handleInputChange} required /></div>
+                          <div className="grid sm:grid-cols-2 gap-4">
+                            <div className="space-y-2"><Label>Nom *</Label><Input name="responsable1LastName" value={formData.responsable1LastName} onChange={handleInputChange} required /></div>
+                            <div className="space-y-2"><Label>Prénom *</Label><Input name="responsable1FirstName" value={formData.responsable1FirstName} onChange={handleInputChange} required /></div>
+                          </div>
                           <div className="space-y-2"><Label>Adresse *</Label><Input name="studentAddress" value={formData.studentAddress} onChange={handleInputChange} placeholder="Adresse complète" required /></div>
                           <div className="grid sm:grid-cols-2 gap-4">
                             <div className="space-y-2"><Label>Code Postal *</Label><Input name="studentPostalCode" value={formData.studentPostalCode} onChange={handleInputChange} placeholder="29200" required /></div>
@@ -1092,7 +1099,10 @@ function InscriptionPageContent() {
                         </div>
                         <div className="space-y-4">
                           <h3 className="font-semibold border-b pb-2">Responsable légal 2 (optionnel)</h3>
-                          <div className="space-y-2"><Label>Nom & Prénom</Label><Input name="responsable2Name" value={formData.responsable2Name} onChange={handleInputChange} /></div>
+                          <div className="grid sm:grid-cols-2 gap-4">
+                            <div className="space-y-2"><Label>Nom</Label><Input name="responsable2LastName" value={formData.responsable2LastName} onChange={handleInputChange} /></div>
+                            <div className="space-y-2"><Label>Prénom</Label><Input name="responsable2FirstName" value={formData.responsable2FirstName} onChange={handleInputChange} /></div>
+                          </div>
                           <div className="space-y-2"><Label>Adresse</Label><Input name="responsable2Address" value={formData.responsable2Address} onChange={handleInputChange} placeholder="Adresse complète" /></div>
                           <div className="grid sm:grid-cols-2 gap-4">
                             <div className="space-y-2"><Label>Code Postal</Label><Input name="responsable2PostalCode" value={formData.responsable2PostalCode} onChange={handleInputChange} placeholder="29200" /></div>
@@ -1477,12 +1487,12 @@ function InscriptionPageContent() {
                           <h4 className="font-semibold">Récapitulatif</h4>
                           <div className="grid sm:grid-cols-2 gap-4 text-sm">
                             <div><p className="text-gray-500">Élève</p><p className="font-medium">{formData.studentLastName} {formData.studentFirstName}</p></div>
-                            <div><p className="text-gray-500">Âge</p><p className="font-medium">{tarifCalcule.age} ans</p></div>
-                            <div><p className="text-gray-500">Responsable</p><p className="font-medium">{formData.responsable1Name}</p></div>
+                            {!isMajeur && <div><p className="text-gray-500">Âge</p><p className="font-medium">{tarifCalcule.age} ans</p></div>}
+                            <div><p className="text-gray-500">Responsable</p><p className="font-medium">{formData.responsable1LastName} {formData.responsable1FirstName}</p></div>
                             <div><p className="text-gray-500">Contact</p><p className="font-medium">{formData.responsable1Email}</p></div>
                           </div>
                           <div>
-                            <p className="text-gray-500 mb-2">Cours ({tarifCalcule.totalMinutes} min/sem)</p>
+                            <p className="text-gray-500 mb-2">Cours ({tarifCalcule.totalMinutes >= 60 ? `${Math.floor(tarifCalcule.totalMinutes / 60)}h${tarifCalcule.totalMinutes % 60 > 0 ? String(tarifCalcule.totalMinutes % 60).padStart(2, '0') : ''}` : `${tarifCalcule.totalMinutes} min`}/sem)</p>
                             <div className="flex flex-wrap gap-2">
                               {selectedCourses.map((id) => {
                                 const c = planningCours.find((x: CoursPlanning) => x.id === id);
@@ -1532,13 +1542,13 @@ function InscriptionPageContent() {
                                   telephone: formData.studentPhone,
                                   email: formData.studentEmail,
                                   adherentPrecedent: formData.adherentPrecedent,
-                                  responsable1Nom: formData.responsable1Name,
+                                  responsable1Nom: `${formData.responsable1LastName} ${formData.responsable1FirstName}`.trim(),
                                   responsable1Tel: formData.responsable1Phone,
                                   responsable1Email: formData.responsable1Email,
                                   responsable1Adresse: formData.studentAddress || undefined,
                                   responsable1CodePostal: formData.studentPostalCode || undefined,
                                   responsable1Ville: formData.studentCity || undefined,
-                                  responsable2Nom: formData.responsable2Name || undefined,
+                                  responsable2Nom: formData.responsable2LastName ? `${formData.responsable2LastName} ${formData.responsable2FirstName}`.trim() : undefined,
                                   responsable2Tel: formData.responsable2Phone || undefined,
                                   responsable2Email: formData.responsable2Email || undefined,
                                   responsable2Adresse: formData.responsable2Address || undefined,
@@ -1605,7 +1615,7 @@ function InscriptionPageContent() {
                     <CardTitle className="flex items-center gap-2"><Calculator className="h-5 w-5" />Estimation tarif</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-6 space-y-3">
-                    <div className="flex justify-between text-sm"><span>Durée/semaine</span><span className="font-medium">{tarifCalcule.totalMinutes} min</span></div>
+                    <div className="flex justify-between text-sm"><span>Durée/semaine</span><span className="font-medium">{tarifCalcule.totalMinutes >= 60 ? `${Math.floor(tarifCalcule.totalMinutes / 60)}h${tarifCalcule.totalMinutes % 60 > 0 ? String(tarifCalcule.totalMinutes % 60).padStart(2, '0') : ''}` : `${tarifCalcule.totalMinutes} min`}</span></div>
                     {tarifCalcule.tarifCours > 0 && (
                       <div className="flex justify-between text-sm">
                         <span>Cours {formData.tarifReduit ? "(réduit)" : "(plein)"}{prorataActif ? " prorata" : ""}</span>
