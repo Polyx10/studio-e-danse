@@ -629,6 +629,7 @@ function InscriptionPageContent() {
     formData.studentCity
   );
   const canProceedStep3 = selectedCourses.length > 0 || formData.danseEtudesOption !== "0";
+  const canProceedStep4 = formData.modePaiement.length > 0;
   const canSubmit = Boolean(formData.acceptRules && formData.signatureName);
 
   const coursByJour = useMemo(() => {
@@ -1293,20 +1294,8 @@ function InscriptionPageContent() {
                             <div className="flex items-center space-x-2"><RadioGroupItem value="non" id="sp-non" /><Label htmlFor="sp-non">NON</Label></div>
                           </RadioGroup>
                           {formData.participationSpectacle === "oui" && (
-                            <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                              <p className="text-sm text-gray-600">Tarifs costumes : 1=20€/15€, 2=35€/25€, 3=50€/35€, 4=65€/45€ (Adulte/Enfant)</p>
-                              <div className="space-y-2">
-                                <Label>Nombre de costumes</Label>
-                                <Select value={formData.nombreCostumes} onValueChange={(v: string) => setFormData(p => ({ ...p, nombreCostumes: v }))}>
-                                  <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="1">1</SelectItem>
-                                    <SelectItem value="2">2</SelectItem>
-                                    <SelectItem value="3">3</SelectItem>
-                                    <SelectItem value="4">4</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
+                            <div className="bg-gray-50 p-4 rounded-lg">
+                              <p className="text-sm text-gray-600">Tarifs costumes à titre indicatif : 1=20€/15€, 2=35€/25€, 3=50€/35€, 4=65€/45€ (Adulte/Enfant). Le nombre de costumes sera déterminé avec le secrétariat.</p>
                             </div>
                           )}
                         </div>
@@ -1377,7 +1366,7 @@ function InscriptionPageContent() {
                         )}
 
                         <div className="space-y-4">
-                          <h3 className="font-semibold border-b pb-2">Mode de paiement (plusieurs choix possibles)</h3>
+                          <h3 className="font-semibold border-b pb-2">Mode de paiement <span className="text-red-500">*</span> (plusieurs choix possibles)</h3>
                           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                             {["Chèque", "CB", "ANCV", "Virement", "Espèces"].map((m) => (
                               <div 
@@ -1446,7 +1435,6 @@ function InscriptionPageContent() {
                               </div>
                             )}
                             <div className="pt-2">
-                              <p className="text-xs text-gray-500 mb-2">Conservez ce document pour votre suivi personnel.</p>
                               <Button
                                 type="button"
                                 variant="outline"
@@ -1470,7 +1458,12 @@ function InscriptionPageContent() {
 
                         <div className="flex justify-between pt-4">
                           <Button type="button" variant="outline" onClick={() => goToStep(3)}>Retour</Button>
-                          <Button type="button" onClick={() => goToStep(5)} className="bg-[#2D3436] hover:bg-[#3d4446]">Continuer</Button>
+                          <div className="text-right">
+                            {!canProceedStep4 && (
+                              <p className="text-xs text-red-600 mb-1">Veuillez sélectionner au moins un mode de paiement.</p>
+                            )}
+                            <Button type="button" onClick={() => goToStep(5)} disabled={!canProceedStep4} className="bg-[#2D3436] hover:bg-[#3d4446] disabled:opacity-50 disabled:cursor-not-allowed">Continuer</Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
