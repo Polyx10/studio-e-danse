@@ -47,6 +47,7 @@ interface CourseFiche {
 export default function CoursPage() {
   const [coursDynamiques, setCoursDynamiques] = useState<CoursPlanning[] | null>(null);
   const [coursesFiches, setCoursesFiches] = useState<CourseFiche[]>([]);
+  const [filtreProf, setFiltreProf] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/planning')
@@ -60,7 +61,8 @@ export default function CoursPage() {
   }, []);
 
   // Utiliser les cours dynamiques (BDD) si disponibles, sinon fallback sur le fichier statique
-  const coursAffiches = coursDynamiques || planningCours;
+  const coursBase = coursDynamiques || planningCours;
+  const coursAffiches = filtreProf ? coursBase.filter(c => c.professeur === filtreProf) : coursBase;
 
   return (
     <div className="flex flex-col">
@@ -101,14 +103,40 @@ export default function CoursPage() {
             <div className="flex-1 border-t border-gray-200" />
           </div>
 
-          {/* Legende des professeurs */}
-          <div className="flex flex-wrap justify-center gap-3 mb-8">
+          {/* Legende des professeurs — filtre cliquable */}
+          <div className="flex flex-wrap justify-center gap-3 mb-4">
             {Object.entries(professeursColors).map(([prof, colorClass]) => (
-              <div key={prof} className={"px-4 py-2 rounded-lg text-sm font-medium border-2 " + colorClass}>
+              <button
+                key={prof}
+                onClick={() => setFiltreProf(filtreProf === prof ? null : prof)}
+                className={[
+                  "px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all",
+                  colorClass,
+                  filtreProf === prof
+                    ? "ring-2 ring-offset-2 ring-[#2D3436] scale-105 shadow-md"
+                    : filtreProf !== null
+                    ? "opacity-40"
+                    : ""
+                ].join(" ")}
+              >
                 {prof}
-              </div>
+              </button>
             ))}
           </div>
+          {filtreProf && (
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <p className="text-sm text-gray-600">
+                Cours de <strong>{filtreProf}</strong> — {coursAffiches.length} cours affichés
+              </p>
+              <button
+                onClick={() => setFiltreProf(null)}
+                className="text-xs text-gray-500 underline hover:text-gray-700"
+              >
+                Tout afficher
+              </button>
+            </div>
+          )}
+          {!filtreProf && <div className="mb-6 text-center text-xs text-gray-400">Cliquez sur un professeur pour filtrer ses cours</div>}
 
           {/* === VUE MOBILE : onglets par jour === */}
           <MobilePlanningView coursAffiches={coursAffiches} professeursColors={professeursColors} />
