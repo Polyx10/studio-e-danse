@@ -221,17 +221,25 @@ export default function CoursPage() {
       {/* Tenues recommandées */}
       <section className="py-8 bg-amber-50 border-y border-amber-200">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-3xl mx-auto">
-            <div>
+          <div className="max-w-3xl mx-auto">
+            <div className="mb-4">
               <h3 className="font-semibold text-gray-900">Tenues recommandées</h3>
               <p className="text-sm text-gray-600">Consultez nos recommandations de tenues pour chaque discipline</p>
             </div>
-            <a href="/documents/tenues-recommandees.pdf" download className="inline-block flex-shrink-0">
-              <Button variant="outline" className="gap-2 border-amber-400 hover:bg-amber-100">
-                <Download className="h-4 w-4" />
-                Télécharger (PDF)
-              </Button>
-            </a>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a href="/documents/tenues-decathlon.pdf" download className="inline-block">
+                <Button variant="outline" className="gap-2 border-amber-400 hover:bg-amber-100 w-full sm:w-auto">
+                  <Download className="h-4 w-4" />
+                  Vêtements Décathlon (PDF)
+                </Button>
+              </a>
+              <a href="/documents/tenues-mademoiselle-danse.pdf" download className="inline-block">
+                <Button variant="outline" className="gap-2 border-amber-400 hover:bg-amber-100 w-full sm:w-auto">
+                  <Download className="h-4 w-4" />
+                  Procédure Mademoiselle Danse (PDF)
+                </Button>
+              </a>
+            </div>
           </div>
         </div>
       </section>
