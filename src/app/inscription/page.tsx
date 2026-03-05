@@ -1507,10 +1507,10 @@ function InscriptionPageContent() {
                               </div>
                             </div>
                           )}
-                          <div className="bg-amber-50 border-2 border-amber-400 rounded-lg p-4 mt-2">
-                            <p className="text-sm text-amber-900 font-semibold mb-1">Téléchargement obligatoire</p>
-                            <p className="text-xs text-amber-800 mb-3">
-                              Ce récapitulatif PDF est à présenter au secrétariat de STUDIO e lors du règlement. Veuillez le télécharger et l&apos;imprimer ou le conserver sur votre téléphone.
+                          <div className="bg-red-50 border-2 border-red-500 rounded-lg p-4 mt-2">
+                            <p className="text-sm text-red-800 font-semibold mb-1">⚠️ Téléchargement obligatoire</p>
+                            <p className="text-xs text-red-700 mb-3">
+                              Ce récapitulatif PDF doit être téléchargé, imprimé et apporté au secrétariat de STUDIO e lors du règlement.
                             </p>
                             <Button
                               type="button"
