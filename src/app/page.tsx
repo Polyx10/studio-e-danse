@@ -218,8 +218,8 @@ export default async function Home() {
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-              <Link href="/planning">
-                Voir le planning
+              <Link href="/cours">
+                Voir les cours
               </Link>
             </Button>
           </div>

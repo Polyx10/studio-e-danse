@@ -35,7 +35,7 @@ export function Footer() {
                 { name: "Accueil", href: "/" },
                 { name: "Nos cours", href: "/cours" },
                 { name: "L'équipe", href: "/equipe" },
-                { name: "Planning & Tarifs", href: "/planning" },
+                { name: "Tarifs", href: "/tarifs" },
                 { name: "Inscription", href: "/inscription" },
                 { name: "Contact", href: "/contact" },
               ].map((item) => (

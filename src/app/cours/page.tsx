@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, Clock, Users, Calendar, Search } from "lucide-react";
+import { ArrowRight, Clock, Users, Calendar, Search, Download } from "lucide-react";
 import { planningCours, professeursColors, CoursPlanning, grilleNiveaux } from "@/lib/planning-data";
 import { useRef, useEffect, useState } from "react";
 
@@ -187,10 +187,23 @@ export default function CoursPage() {
             </div>
           </div>
 
-          <div className="text-center mt-8">
-            <Button asChild variant="outline" size="lg">
-              <Link href="/planning">Voir les tarifs</Link>
-            </Button>
+        </div>
+      </section>
+
+      {/* Tenues recommandées */}
+      <section className="py-8 bg-amber-50 border-y border-amber-200">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 max-w-3xl mx-auto">
+            <div>
+              <h3 className="font-semibold text-gray-900">Tenues recommandées</h3>
+              <p className="text-sm text-gray-600">Consultez nos recommandations de tenues pour chaque discipline</p>
+            </div>
+            <a href="/documents/tenues-recommandees.pdf" download className="inline-block flex-shrink-0">
+              <Button variant="outline" className="gap-2 border-amber-400 hover:bg-amber-100">
+                <Download className="h-4 w-4" />
+                Télécharger (PDF)
+              </Button>
+            </a>
           </div>
         </div>
       </section>
@@ -383,8 +396,8 @@ export default function CoursPage() {
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href="/planning">
-                Voir le planning
+              <Link href="/tarifs">
+                Voir les tarifs
               </Link>
             </Button>
           </div>
