@@ -91,6 +91,16 @@ export default function CoursPage() {
           {/* === MOTEUR DE RECHERCHE PAR ÂGE === */}
           <RechercheParAge coursAffiches={coursAffiches} professeursColors={professeursColors} />
 
+          {/* Séparateur entre moteur de recherche et planning */}
+          <div className="flex items-center gap-4 my-10">
+            <div className="flex-1 border-t border-gray-200" />
+            <h3 className="text-lg font-bold text-gray-700 whitespace-nowrap flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-[#F9CA24]" />
+              Horaires de la semaine
+            </h3>
+            <div className="flex-1 border-t border-gray-200" />
+          </div>
+
           {/* Legende des professeurs */}
           <div className="flex flex-wrap justify-center gap-3 mb-8">
             {Object.entries(professeursColors).map(([prof, colorClass]) => (
