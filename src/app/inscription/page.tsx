@@ -759,6 +759,7 @@ function InscriptionPageContent() {
                 <div className="flex-1">
                   <p className="font-semibold text-amber-900 text-sm">Vous avez un brouillon d&apos;inscription en cours</p>
                   <p className="text-xs text-amber-700 mt-0.5">Souhaitez-vous reprendre où vous vous étiez arrêté(e) ?</p>
+                  <p className="text-xs text-amber-600 mt-1 italic">⚠ Ce brouillon est enregistré uniquement sur cet appareil et ce navigateur. Il ne sera pas disponible depuis un autre appareil ou si vous videz votre cache.</p>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
                   <button
