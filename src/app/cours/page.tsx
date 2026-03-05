@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ArrowRight, Clock, Users, Calendar } from "lucide-react";
+import { ArrowRight, Clock, Users, Calendar, Search } from "lucide-react";
 import { planningCours, professeursColors, CoursPlanning, grilleNiveaux } from "@/lib/planning-data";
 import { useRef, useEffect, useState } from "react";
 
@@ -88,6 +88,9 @@ export default function CoursPage() {
             <p className="text-gray-600 max-w-2xl mx-auto">Les cours sont positionnés selon leurs horaires reels</p>
           </div>
           
+          {/* === MOTEUR DE RECHERCHE PAR ÂGE === */}
+          <RechercheParAge coursAffiches={coursAffiches} professeursColors={professeursColors} />
+
           {/* Legende des professeurs */}
           <div className="flex flex-wrap justify-center gap-3 mb-8">
             {Object.entries(professeursColors).map(([prof, colorClass]) => (
@@ -375,6 +378,189 @@ export default function CoursPage() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+const CLASSES_SCOLAIRES = [
+  { label: 'Petite Section (PS)', age: 3 },
+  { label: 'Moyenne Section (MS)', age: 4 },
+  { label: 'Grande Section (GS)', age: 5 },
+  { label: 'CP', age: 6 },
+  { label: 'CE1', age: 7 },
+  { label: 'CE2', age: 8 },
+  { label: 'CM1', age: 9 },
+  { label: 'CM2', age: 10 },
+  { label: '6ème', age: 11 },
+  { label: '5ème', age: 12 },
+  { label: '4ème', age: 13 },
+  { label: '3ème', age: 14 },
+  { label: 'Seconde', age: 15 },
+  { label: 'Première', age: 16 },
+  { label: 'Terminale', age: 17 },
+  { label: 'Étudiant / Jeune adulte (18-25 ans)', age: 18 },
+  { label: 'Adulte (26 ans et +)', age: 26 },
+];
+
+function RechercheParAge({
+  coursAffiches,
+  professeursColors,
+}: {
+  coursAffiches: CoursPlanning[];
+  professeursColors: Record<string, string>;
+}) {
+  const [mode, setMode] = useState<'age' | 'classe'>('classe');
+  const [age, setAge] = useState('');
+  const [classeAge, setClasseAge] = useState<number | null>(null);
+  const [resultats, setResultats] = useState<{ niveau: string; cours: CoursPlanning[] }[] | null>(null);
+
+  const calculerResultats = (ageRecherche: number) => {
+    const groupes: { niveau: string; cours: CoursPlanning[] }[] = [];
+    grilleNiveaux.forEach(n => {
+      if (n.surSelection) return;
+      const min = n.ageMin ?? 0;
+      const max = n.ageMax ?? 999;
+      if (ageRecherche >= min && ageRecherche < max) {
+        const coursNiveau = n.coursIds
+          .map(id => coursAffiches.find(c => c.id === id))
+          .filter((c): c is CoursPlanning => !!c);
+        if (coursNiveau.length > 0) {
+          groupes.push({ niveau: n.niveau, cours: coursNiveau });
+        }
+      }
+    });
+    setResultats(groupes);
+  };
+
+  const handleSearch = () => {
+    const ageNum = mode === 'age' ? parseInt(age) : classeAge;
+    if (!ageNum || ageNum < 3 || ageNum > 80) return;
+    calculerResultats(ageNum);
+  };
+
+  const reset = () => {
+    setResultats(null);
+    setAge('');
+    setClasseAge(null);
+  };
+
+  const jourOrder = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+
+  return (
+    <div className="mb-12 bg-gradient-to-br from-[#F9CA24]/10 to-amber-50 border border-amber-200 rounded-2xl p-6">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-full bg-[#F9CA24] flex items-center justify-center flex-shrink-0">
+          <Search className="h-5 w-5 text-[#2D3436]" />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold text-gray-900">Trouvez vos cours</h3>
+          <p className="text-sm text-gray-600">Entrez votre âge ou classe scolaire pour voir les cours qui vous correspondent</p>
+        </div>
+      </div>
+
+      {/* Sélecteur de mode */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => { setMode('classe'); reset(); }}
+          className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+            mode === 'classe' ? 'bg-[#2D3436] text-white border-[#2D3436]' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+          }`}
+        >Par classe scolaire</button>
+        <button
+          onClick={() => { setMode('age'); reset(); }}
+          className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+            mode === 'age' ? 'bg-[#2D3436] text-white border-[#2D3436]' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+          }`}
+        >Par âge</button>
+      </div>
+
+      {/* Formulaire */}
+      <div className="flex gap-3 items-end flex-wrap">
+        {mode === 'classe' ? (
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Classe scolaire</label>
+            <select
+              value={classeAge ?? ''}
+              onChange={e => { setClasseAge(Number(e.target.value)); setResultats(null); }}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-300"
+            >
+              <option value="">-- Sélectionner une classe --</option>
+              {CLASSES_SCOLAIRES.map(c => (
+                <option key={c.label} value={c.age}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div className="flex-1 min-w-[140px] max-w-[180px]">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Âge (en septembre 2025)</label>
+            <input
+              type="number"
+              min={3}
+              max={80}
+              value={age}
+              onChange={e => { setAge(e.target.value); setResultats(null); }}
+              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              placeholder="Ex : 10"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-300"
+            />
+          </div>
+        )}
+        <button
+          onClick={handleSearch}
+          disabled={mode === 'age' ? !age : !classeAge}
+          className="px-6 py-2.5 bg-[#2D3436] text-white rounded-lg text-sm font-medium hover:bg-[#3d4446] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          Rechercher
+        </button>
+        {resultats !== null && (
+          <button onClick={reset} className="px-4 py-2.5 text-sm text-gray-500 hover:text-gray-700 underline">
+            Réinitialiser
+          </button>
+        )}
+      </div>
+
+      {/* Résultats */}
+      {resultats !== null && (
+        <div className="mt-6">
+          {resultats.length === 0 ? (
+            <p className="text-gray-500 text-sm">Aucun cours trouvé pour cet âge.</p>
+          ) : (
+            <>
+              <p className="text-sm font-semibold text-gray-700 mb-4">
+                {resultats.reduce((acc, r) => acc + r.cours.length, 0)} cours disponibles dans {resultats.length} discipline{resultats.length > 1 ? 's' : ''} :
+              </p>
+              <div className="space-y-4">
+                {resultats.map(({ niveau, cours }) => (
+                  <div key={niveau}>
+                    <h4 className="text-sm font-bold text-[#2D3436] mb-2 uppercase tracking-wide">{niveau}</h4>
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {cours
+                        .sort((a, b) => jourOrder.indexOf(a.jour) - jourOrder.indexOf(b.jour))
+                        .map(c => {
+                          const colorClass = professeursColors[c.professeur] || 'bg-gray-50 border-gray-200 text-gray-700';
+                          return (
+                            <div key={c.id} className={`rounded-xl border-2 p-3 ${colorClass}`}>
+                              <div className="flex justify-between items-start gap-2">
+                                <div>
+                                  <p className="font-semibold text-sm">{c.jour}</p>
+                                  <p className="text-xs opacity-80 mt-0.5">{c.horaire}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-xs font-medium">{c.professeur}</p>
+                                  <p className="text-xs opacity-70">Salle {c.salle}</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
