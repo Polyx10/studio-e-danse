@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Info, AlertCircle, Calculator, Users } from "lucide-react";
+import { CheckCircle2, Info, AlertCircle, Calculator, Users, Download } from "lucide-react";
 import { planningCours, professeursColors, calculateAge, getTarifForDuree, CoursPlanning, getCoursRecommandes } from "@/lib/planning-data";
 import { useTarifs, TarifGrilleRow } from "@/hooks/useTarifs";
 import { useQuotas, incrementerQuota } from "@/hooks/useQuotas";
@@ -699,30 +699,127 @@ function InscriptionPageContent() {
   }
 
   if (isSubmitted) {
+    const coursSelectionnesNoms = selectedCourses.map(id => {
+      const c = planningCours.find((x: CoursPlanning) => x.id === id);
+      return c ? `${c.nom} (${c.jour} ${c.horaire})` : id;
+    });
     return (
-      <div className="min-h-screen bg-gray-50 py-20">
-        <div className="container mx-auto px-4">
-          <Card className="max-w-2xl mx-auto border-0 shadow-lg">
-            <CardContent className="pt-12 pb-8 text-center">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle2 className="h-10 w-10 text-green-600" />
+      <div className="min-h-screen bg-gray-50">
+        {/* Bandeau succès */}
+        <div className="bg-green-600 text-white py-4 px-6 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <CheckCircle2 className="h-5 w-5" />
+            <span className="font-semibold">Inscription enregistrée avec succès !</span>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 py-10 max-w-2xl space-y-6">
+
+          {/* Étape 1 : Télécharger le PDF — bloc prioritaire */}
+          <div className="bg-red-50 border-2 border-red-500 rounded-2xl p-6 text-center space-y-4">
+            <div className="w-16 h-16 mx-auto rounded-full bg-red-100 flex items-center justify-center">
+              <span className="text-3xl">📄</span>
+            </div>
+            <h2 className="text-xl font-bold text-red-800">Étape 1 — Téléchargez votre récapitulatif PDF</h2>
+            <p className="text-red-700 text-sm">
+              Ce document est <strong>obligatoire</strong> pour finaliser votre inscription. Vous devrez le présenter au secrétariat lors de votre venue.
+            </p>
+            <Button
+              onClick={() => {
+                genererPDFRecapitulatif({
+                  nomEleve: `${formData.studentLastName} ${formData.studentFirstName}`,
+                  sexe: formData.studentGender,
+                  dateNaissance: formData.studentBirthDate,
+                  age: tarifCalcule.age,
+                  adresse: formData.studentAddress,
+                  codePostal: formData.studentPostalCode,
+                  ville: formData.studentCity,
+                  telephone: formData.studentPhone,
+                  email: formData.studentEmail,
+                  adherentPrecedent: formData.adherentPrecedent,
+                  responsable1Nom: `${formData.responsable1LastName} ${formData.responsable1FirstName}`.trim(),
+                  responsable1Tel: formData.responsable1Phone,
+                  responsable1Email: formData.responsable1Email,
+                  responsable1Adresse: formData.studentAddress || undefined,
+                  responsable1CodePostal: formData.studentPostalCode || undefined,
+                  responsable1Ville: formData.studentCity || undefined,
+                  responsable2Nom: formData.responsable2LastName ? `${formData.responsable2LastName} ${formData.responsable2FirstName}`.trim() : undefined,
+                  responsable2Tel: formData.responsable2Phone || undefined,
+                  responsable2Email: formData.responsable2Email || undefined,
+                  responsable2Adresse: formData.responsable2Address || undefined,
+                  coursSelectionnes: coursSelectionnesNoms,
+                  tarifCours: tarifCalcule.tarifCours,
+                  tarifDanseEtudes: tarifCalcule.tarifDanseEtudes,
+                  adhesion: tarifCalcule.adhesion,
+                  licenceFFD: tarifCalcule.licenceFFD,
+                  totalGeneral: tarifCalcule.total,
+                  tarifReduit: formData.tarifReduit,
+                  membreFamille: famillePourPDFRef.current,
+                  participationSpectacle: formData.participationSpectacle,
+                  nombreCostumes: formData.nombreCostumes,
+                  droitImage: formData.droitImage,
+                  modePaiement: formData.modePaiement,
+                  nombreVersements: formData.nombreVersements,
+                  echeances,
+                  avecPreinscription: preinscriptionEffective,
+                  montantPreinscription: preinscriptionEffective ? montantPreinscription : undefined,
+                  nomSignature: formData.signatureName,
+                  dateInscription: new Date().toLocaleDateString('fr-FR'),
+                });
+                setPdfTelecharge(true);
+              }}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 text-base gap-2"
+              size="lg"
+            >
+              <Download className="h-5 w-5" />
+              Télécharger le récapitulatif PDF
+            </Button>
+            {pdfTelecharge && (
+              <div className="flex items-center justify-center gap-2 text-green-700 font-medium text-sm">
+                <CheckCircle2 className="h-4 w-4" />
+                Récapitulatif téléchargé
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">Pré-inscription enregistrée !</h1>
-              <Card className="bg-amber-50 border-amber-200 mb-8">
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <AlertCircle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-left">
-                      <h4 className="font-semibold text-[#2D3436] mb-2">Montant à régler</h4>
-                      <p className="text-2xl font-bold text-[#2D3436] mb-2">{tarifCalcule.total.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</p>
-                      <p className="text-[#2D3436] text-sm">Rendez-vous au secrétariat pour finaliser.</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Button onClick={() => window.location.href = "/"} className="bg-[#2D3436] hover:bg-[#3d4446]">Retour</Button>
-            </CardContent>
-          </Card>
+            )}
+          </div>
+
+          {/* Étape 2 : Se rendre au secrétariat */}
+          <div className="bg-amber-50 border-2 border-amber-400 rounded-2xl p-6 space-y-3">
+            <h2 className="text-lg font-bold text-amber-900 flex items-center gap-2">
+              <span className="w-7 h-7 rounded-full bg-amber-400 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">2</span>
+              Rendez-vous au secrétariat sous 3 jours
+            </h2>
+            <p className="text-amber-800 text-sm">
+              Présentez-vous au secrétariat de STUDIO e <strong>muni(e) du récapitulatif imprimé ou sur votre téléphone</strong> pour effectuer votre premier règlement et finaliser votre inscription.
+            </p>
+            <div className="bg-amber-100 rounded-lg p-3 text-sm text-amber-900">
+              <p className="font-semibold mb-1">Montant à régler :</p>
+              <p className="text-2xl font-bold">{tarifCalcule.total.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</p>
+            </div>
+          </div>
+
+          {/* Récap élève */}
+          <div className="bg-white border rounded-xl p-4 text-sm space-y-1 text-gray-700">
+            <p className="font-semibold text-gray-900 mb-2">Récapitulatif de votre inscription</p>
+            <p><span className="text-gray-500">Élève :</span> <strong>{formData.studentLastName} {formData.studentFirstName}</strong></p>
+            {selectedCourses.length > 0 && (
+              <div>
+                <p className="text-gray-500 mt-1">Cours :</p>
+                <ul className="ml-3 space-y-0.5">
+                  {coursSelectionnesNoms.map((n, i) => <li key={i} className="text-gray-700">• {n}</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Bouton retour — secondaire */}
+          <div className="text-center pt-2">
+            <button
+              onClick={() => window.location.href = "/"}
+              className="text-sm text-gray-400 hover:text-gray-600 underline underline-offset-2"
+            >
+              Retour à l&apos;accueil
+            </button>
+          </div>
         </div>
       </div>
     );
