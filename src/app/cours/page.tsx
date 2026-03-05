@@ -97,8 +97,11 @@ export default function CoursPage() {
             ))}
           </div>
 
-          {/* Grille horaire compacte - vue d'ensemble sans scroll */}
-          <div className="w-full">
+          {/* === VUE MOBILE : onglets par jour === */}
+          <MobilePlanningView coursAffiches={coursAffiches} professeursColors={professeursColors} />
+
+          {/* === VUE DESKTOP : grille horaire temporelle === */}
+          <div className="hidden md:block w-full">
             <div className="border rounded-lg overflow-hidden shadow-md">
               {/* En-têtes */}
               <div className="flex bg-gray-100">
@@ -109,18 +112,12 @@ export default function CoursPage() {
                     coursJour.some(c => c.salle === salle)
                   );
                   const nbSalles = sallesAvecCours.length;
-                  
                   return (
                     <div key={jour} className="border-r last:border-r-0" style={{ flex: nbSalles }}>
-                      <div className="bg-[#2D3436] text-white text-center py-1.5 font-semibold text-xs">
-                        {jour}
-                      </div>
+                      <div className="bg-[#2D3436] text-white text-center py-1.5 font-semibold text-xs">{jour}</div>
                       <div className="flex bg-gray-300 text-[9px]">
                         {sallesAvecCours.map((salle, idx) => (
-                          <div 
-                            key={salle} 
-                            className={`flex-1 text-center py-0.5 ${idx < sallesAvecCours.length - 1 ? 'border-r border-gray-400' : ''}`}
-                          >
+                          <div key={salle} className={`flex-1 text-center py-0.5 ${idx < sallesAvecCours.length - 1 ? 'border-r border-gray-400' : ''}`}>
                             {salle}
                           </div>
                         ))}
@@ -129,70 +126,38 @@ export default function CoursPage() {
                   );
                 })}
               </div>
-              
               {/* Grille avec heures et cours */}
               <div className="flex">
-                {/* Colonne des heures */}
                 <div className="w-20 bg-gray-100 relative border-r" style={{ height: "910px" }}>
                   {Array.from({ length: 14 }, (_, i) => 9 + i).map((heure) => (
-                    <div 
-                      key={heure} 
-                      className="absolute w-full text-xs text-gray-500 text-right pr-2 border-t border-gray-300"
-                      style={{ top: `${(heure - 9) * 65}px` }}
-                    >
+                    <div key={heure} className="absolute w-full text-xs text-gray-500 text-right pr-2 border-t border-gray-300" style={{ top: `${(heure - 9) * 65}px` }}>
                       {heure}h
                     </div>
                   ))}
                 </div>
-                
-                {/* Colonnes des jours - salles avec cours uniquement */}
                 {["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"].map((jour) => {
                   const coursJour = coursAffiches.filter((c: CoursPlanning) => c.jour === jour);
-                  const sallesAvecCours = ["AC", "LDN", "TV"].filter(salle => 
-                    coursJour.some(c => c.salle === salle)
-                  );
+                  const sallesAvecCours = ["AC", "LDN", "TV"].filter(salle => coursJour.some(c => c.salle === salle));
                   const nbSalles = sallesAvecCours.length;
-                  
                   return (
                     <div key={jour} className="flex border-r last:border-r-0" style={{ flex: nbSalles, height: "910px" }}>
                       {sallesAvecCours.map((salle) => {
                         const coursSalle = coursJour.filter((c) => c.salle === salle);
-                        
                         return (
                           <div key={salle} className="bg-gray-50 relative flex-1 border-r border-gray-200 last:border-r-0">
-                            {/* Lignes horizontales des heures */}
                             {Array.from({ length: 14 }, (_, i) => 9 + i).map((heure) => (
-                              <div 
-                                key={heure} 
-                                className="absolute w-full border-t border-gray-200"
-                                style={{ top: `${(heure - 9) * 65}px` }}
-                              />
+                              <div key={heure} className="absolute w-full border-t border-gray-200" style={{ top: `${(heure - 9) * 65}px` }} />
                             ))}
-                            
-                            {/* Cours positionnés */}
                             {coursSalle.map((c) => {
-                              const scale = 65 / 60; // 65px par heure
+                              const scale = 65 / 60;
                               const top = (c.heureDebut - 9 * 60) * scale;
                               const height = (c.heureFin - c.heureDebut) * scale;
                               const colorClass = professeursColors[c.professeur] || "bg-gray-100 border-gray-100 text-gray-700";
-                              
-                              // Séparer le nom en discipline et niveau
                               const nomParts = c.nom.split(' ');
-                              const discipline = nomParts[0]; // Ex: "Classique", "Jazz", "BAS"
-                              const niveau = nomParts.slice(1).join(' '); // Ex: "Adulte Inter", "KID"
-                              
+                              const discipline = nomParts[0];
+                              const niveau = nomParts.slice(1).join(' ');
                               return (
-                                <div 
-                                  key={c.id} 
-                                  className={"absolute px-2 py-1.5 rounded border overflow-hidden " + colorClass}
-                                  style={{ 
-                                    top: `${top}px`, 
-                                    height: `${Math.max(height - 2, 50)}px`,
-                                    left: "2px",
-                                    right: "2px",
-                                    zIndex: 1
-                                  }}
-                                >
+                                <div key={c.id} className={"absolute px-2 py-1.5 rounded border overflow-hidden " + colorClass} style={{ top: `${top}px`, height: `${Math.max(height - 2, 50)}px`, left: "2px", right: "2px", zIndex: 1 }}>
                                   <p className="font-semibold leading-tight text-[10px]">{discipline}</p>
                                   <p className="font-medium leading-tight text-[9px] mt-0.5">{niveau}</p>
                                   <p className="opacity-80 text-[9px] mt-0.5">{c.horaire}</p>
@@ -410,6 +375,80 @@ export default function CoursPage() {
           </div>
         </div>
       </section>
+    </div>
+  );
+}
+
+function MobilePlanningView({
+  coursAffiches,
+  professeursColors,
+}: {
+  coursAffiches: CoursPlanning[];
+  professeursColors: Record<string, string>;
+}) {
+  const jours = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+  const [jourActif, setJourActif] = useState(jours[0]);
+
+  return (
+    <div className="md:hidden w-full">
+      {/* Onglets jours */}
+      <div className="flex overflow-x-auto gap-1 pb-2 mb-4 scrollbar-hide">
+        {jours.map((jour) => {
+          const nb = coursAffiches.filter((c) => c.jour === jour).length;
+          if (nb === 0) return null;
+          return (
+            <button
+              key={jour}
+              onClick={() => setJourActif(jour)}
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+                jourActif === jour
+                  ? "bg-[#2D3436] text-white border-[#2D3436]"
+                  : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              {jour.slice(0, 3)}
+              <span className="ml-1 text-[11px] opacity-70">({nb})</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Liste des cours du jour sélectionné */}
+      <div className="space-y-3">
+        {coursAffiches
+          .filter((c) => c.jour === jourActif)
+          .sort((a, b) => a.heureDebut - b.heureDebut)
+          .map((c) => {
+            const colorClass = professeursColors[c.professeur] || "bg-gray-50 border-gray-200 text-gray-700";
+            return (
+              <div key={c.id} className={`rounded-xl border-2 p-4 ${colorClass}`}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-base leading-tight">{c.nom}</p>
+                    <p className="text-sm mt-1 opacity-80">{c.professeur}</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-medium text-sm">{c.horaire}</p>
+                    <p className="text-xs opacity-70 mt-0.5">Salle {c.salle} · {c.duree} min</p>
+                  </div>
+                </div>
+                {(c.isDanseEtudes || c.isConcours) && (
+                  <div className="mt-2">
+                    {c.isDanseEtudes && (
+                      <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-medium">Danse Études</span>
+                    )}
+                    {c.isConcours && (
+                      <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Concours</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        {coursAffiches.filter((c) => c.jour === jourActif).length === 0 && (
+          <p className="text-center text-gray-400 py-8">Aucun cours ce jour</p>
+        )}
+      </div>
     </div>
   );
 }
