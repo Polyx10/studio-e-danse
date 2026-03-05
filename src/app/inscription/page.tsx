@@ -99,6 +99,8 @@ function StepIndicator({ currentStep, isMajeur }: { currentStep: number; isMajeu
   );
 }
 
+const DRAFT_KEY = 'inscription_brouillon';
+
 function InscriptionPageContent() {
   const searchParams = useSearchParams();
   const { grille, fraisFixes, tarifsSpeciaux } = useTarifs();
@@ -109,6 +111,8 @@ function InscriptionPageContent() {
   const [pdfTelecharge, setPdfTelecharge] = useState(false);
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [coursListeAttente, setCoursListeAttente] = useState<CoursPlanning | null>(null);
+  const [showDraftBanner, setShowDraftBanner] = useState(false);
+  const [draftLoaded, setDraftLoaded] = useState(false);
 
   // Vérification ancien adhérent
   const [adherentVerifie, setAdherentVerifie] = useState(false);
@@ -217,10 +221,25 @@ function InscriptionPageContent() {
   useEffect(() => {
     if (searchParams.get('reset') === '1') {
       setStep(1);
+      localStorage.removeItem(DRAFT_KEY);
       window.history.replaceState({}, '', '/inscription');
     }
   }, [searchParams]);
-  
+
+  // Détecter un brouillon existant au montage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.formData?.studentLastName || parsed.formData?.studentFirstName) {
+          setShowDraftBanner(true);
+        }
+      }
+    } catch {}
+    setDraftLoaded(true);
+  }, []);
+
   // Charger les quotas pour tous les cours
   const coursIds = planningCours.map(c => c.id);
   const { quotas, loading: quotasLoading } = useQuotas(coursIds);
@@ -269,6 +288,21 @@ function InscriptionPageContent() {
     acceptRules: false,
     signatureName: "",
   });
+
+  // Sauvegarder automatiquement le brouillon à chaque changement
+  useEffect(() => {
+    if (!draftLoaded || isSubmitted) return;
+    const hasData = formData.studentLastName || formData.studentFirstName || formData.studentBirthDate;
+    if (!hasData) return;
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        formData,
+        selectedCourses,
+        step,
+        savedAt: new Date().toISOString(),
+      }));
+    } catch {}
+  }, [formData, selectedCourses, step, draftLoaded, isSubmitted]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -557,6 +591,7 @@ function InscriptionPageContent() {
         console.error('Erreur incrémentation quotas:', quotaError);
       }
       
+      localStorage.removeItem(DRAFT_KEY);
       setIsSubmitted(true);
     } catch (error) {
       console.error('Erreur complète:', error);
@@ -718,6 +753,45 @@ function InscriptionPageContent() {
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
+            {showDraftBanner && (
+              <div className="mb-6 flex items-start gap-4 p-4 bg-amber-50 border-2 border-amber-400 rounded-xl">
+                <span className="text-2xl flex-shrink-0">💾</span>
+                <div className="flex-1">
+                  <p className="font-semibold text-amber-900 text-sm">Vous avez un brouillon d&apos;inscription en cours</p>
+                  <p className="text-xs text-amber-700 mt-0.5">Souhaitez-vous reprendre où vous vous étiez arrêté(e) ?</p>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try {
+                        const saved = localStorage.getItem(DRAFT_KEY);
+                        if (saved) {
+                          const parsed = JSON.parse(saved);
+                          if (parsed.formData) setFormData(parsed.formData);
+                          if (parsed.selectedCourses) setSelectedCourses(parsed.selectedCourses);
+                          if (parsed.step) setStep(parsed.step);
+                        }
+                      } catch {}
+                      setShowDraftBanner(false);
+                    }}
+                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    Reprendre
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      localStorage.removeItem(DRAFT_KEY);
+                      setShowDraftBanner(false);
+                    }}
+                    className="px-3 py-1.5 bg-white hover:bg-gray-50 text-gray-600 text-xs font-medium rounded-lg border border-gray-300 transition-colors"
+                  >
+                    Recommencer
+                  </button>
+                </div>
+              </div>
+            )}
             <StepIndicator currentStep={step} isMajeur={isMajeur} />
 
             <div className="grid lg:grid-cols-3 gap-8">
