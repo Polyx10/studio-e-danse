@@ -1193,6 +1193,12 @@ function InscriptionPageContent() {
                                             <div className="flex-1">
                                               <p className="font-semibold">{c.nom}</p>
                                               <p className="text-sm">{c.horaire} ({c.duree} min)</p>
+                                              {c.id === 'jeu-2' && (
+                                                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 mt-1 flex items-start gap-1">
+                                                  <span className="shrink-0">⚠️</span>
+                                                  <span>Accessible uniquement si vous prenez <strong>au minimum 2 cours de jazz</strong> par semaine.</span>
+                                                </p>
+                                              )}
                                             </div>
                                             <div className="flex items-center gap-2">
                                               {isSelectable && quota && placesRestantes <= 5 && placesRestantes > 0 && (
