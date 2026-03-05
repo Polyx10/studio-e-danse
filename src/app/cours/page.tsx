@@ -221,6 +221,8 @@ export default function CoursPage() {
                           ? `Jusqu'à ${niveau.ageMax! - 1} ans`
                           : niveau.ageMax === null
                           ? `${niveau.ageMin}+ ans`
+                          : niveau.ageMax - niveau.ageMin === 1
+                          ? `${niveau.ageMin} ans`
                           : `${niveau.ageMin}-${niveau.ageMax - 1} ans`;
 
                         const getClasses = (nom: string) => {
