@@ -454,7 +454,7 @@ function RechercheParAge({
         </div>
         <div>
           <h3 className="text-lg font-bold text-gray-900">Trouvez vos cours</h3>
-          <p className="text-sm text-gray-600">Entrez votre âge ou classe scolaire pour voir les cours qui vous correspondent</p>
+          <p className="text-sm text-gray-600">Entrez votre âge ou classe scolaire pour voir les cours qui vous correspondent. En cas de doute, consultez la <span className="font-medium text-amber-700 underline underline-offset-2">grille indicative des niveaux</span> ci-dessous.</p>
         </div>
       </div>
 
