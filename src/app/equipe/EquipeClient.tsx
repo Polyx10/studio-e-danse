@@ -15,6 +15,8 @@ interface Fiche {
   highlight: boolean;
   ordre: number;
   created_at: string;
+  lien_bouton_url?: string | null;
+  lien_bouton_texte?: string | null;
 }
 
 const COLORS = [
@@ -105,6 +107,16 @@ export function EquipeClient({ fiches }: { fiches: Fiche[] }) {
                     {fiche.texte && (
                       <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify">
                         {fiche.texte}
+                      </div>
+                    )}
+                    {fiche.lien_bouton_url && fiche.lien_bouton_texte && (
+                      <div className="mt-5">
+                        <Button asChild size="sm" className="bg-[#2D3436] hover:bg-[#3d4446] text-white">
+                          <Link href={fiche.lien_bouton_url} target={fiche.lien_bouton_url.startsWith('http') ? '_blank' : undefined} rel={fiche.lien_bouton_url.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                            {fiche.lien_bouton_texte}
+                            <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                          </Link>
+                        </Button>
                       </div>
                     )}
                   </div>

@@ -17,6 +17,8 @@ interface Fiche {
   highlight: boolean;
   show_date: boolean;
   created_at: string;
+  lien_bouton_url?: string | null;
+  lien_bouton_texte?: string | null;
 }
 
 const getCategoryColor = (category: string) => {
@@ -161,6 +163,16 @@ export function ArchivesClient({ fiches }: { fiches: Fiche[] }) {
                       )}
                       {fiche.photos && fiche.photos.length > 0 && (
                         <PhotoGallery photos={fiche.photos} />
+                      )}
+                      {fiche.lien_bouton_url && fiche.lien_bouton_texte && (
+                        <div className="mt-4">
+                          <Button asChild size="sm" className="bg-[#2D3436] hover:bg-[#3d4446] text-white">
+                            <Link href={fiche.lien_bouton_url} target={fiche.lien_bouton_url.startsWith('http') ? '_blank' : undefined} rel={fiche.lien_bouton_url.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                              {fiche.lien_bouton_texte}
+                              <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                            </Link>
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </CardContent>

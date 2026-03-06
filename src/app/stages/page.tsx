@@ -11,7 +11,7 @@ export const revalidate = 60;
 async function getFiches() {
   try {
     const fiches = await sql`
-      SELECT id, titre, texte, photos, categorie, highlight, show_date, created_at
+      SELECT id, titre, texte, photos, categorie, highlight, show_date, created_at, lien_bouton_url, lien_bouton_texte
       FROM pages_content
       WHERE page = 'stages' AND published = true
       ORDER BY ordre ASC, created_at DESC

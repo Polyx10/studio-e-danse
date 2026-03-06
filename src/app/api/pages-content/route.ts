@@ -12,14 +12,14 @@ export async function GET(request: Request) {
     let results;
     if (page) {
       results = await sql`
-        SELECT id, page, titre, texte, photos, categorie, highlight, ordre, show_date, created_at
+        SELECT id, page, titre, texte, photos, categorie, highlight, ordre, show_date, created_at, lien_bouton_url, lien_bouton_texte
         FROM pages_content
         WHERE page = ${page} AND published = true
         ORDER BY ordre ASC, created_at DESC
       `;
     } else {
       results = await sql`
-        SELECT id, page, titre, texte, photos, categorie, highlight, ordre, show_date, created_at
+        SELECT id, page, titre, texte, photos, categorie, highlight, ordre, show_date, created_at, lien_bouton_url, lien_bouton_texte
         FROM pages_content
         WHERE published = true
         ORDER BY page ASC, ordre ASC, created_at DESC
