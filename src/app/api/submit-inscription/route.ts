@@ -63,6 +63,31 @@ export async function POST(request: Request) {
       );
     }
 
+    // Vérification côté serveur : places disponibles pour chaque cours sélectionné
+    if (validatedData.selected_courses && validatedData.selected_courses.length > 0) {
+      const coursComplets: string[] = [];
+      for (const coursId of validatedData.selected_courses) {
+        const quota = await sql`
+          SELECT 
+            c.nom,
+            COALESCE(c.effectif_max, cq.quota_en_ligne, 20) as effectif_max,
+            cq.inscriptions_en_ligne
+          FROM cours_quotas cq
+          LEFT JOIN cours c ON c.id = cq.cours_id
+          WHERE cq.cours_id = ${coursId}
+        `;
+        if (quota.length > 0 && quota[0].inscriptions_en_ligne >= quota[0].effectif_max) {
+          coursComplets.push(quota[0].nom || coursId);
+        }
+      }
+      if (coursComplets.length > 0) {
+        return NextResponse.json(
+          { error: `Le cours "${coursComplets[0]}" n'a plus de places disponibles. Veuillez contacter le secrétariat ou vous inscrire sur la liste d'attente.` },
+          { status: 409 }
+        );
+      }
+    }
+
     // Insertion dans Neon Database
     let result;
     try {
