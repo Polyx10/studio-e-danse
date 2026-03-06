@@ -1350,14 +1350,13 @@ function InscriptionPageContent() {
                                     const isRecommande = recommandes.includes(c.id);
                                     const isHorsNiveau = !isRecommande && !isSpecial;
                                     const isSelectable = !isSpecial && !isComplet && !isHorsNiveau;
+
+                                    // Masquer les cours hors niveau (non recommandés et non spéciaux)
+                                    if (isHorsNiveau) return null;
                                     
                                     let className = "p-3 rounded-lg border-2 transition-all ";
                                     if (isSpecial) {
                                       className += "opacity-50 cursor-not-allowed bg-gray-100";
-                                    } else if (isComplet && isHorsNiveau) {
-                                      className += "bg-gray-100 border-gray-300 opacity-40";
-                                    } else if (isHorsNiveau) {
-                                      className += "opacity-40 cursor-not-allowed bg-gray-100 border-gray-200";
                                     } else if (isComplet) {
                                       className += "bg-gray-100 border-gray-300 " + colorClass;
                                     } else if (isSelected) {
