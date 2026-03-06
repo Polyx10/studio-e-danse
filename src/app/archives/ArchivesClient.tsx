@@ -43,15 +43,17 @@ function PhotoGallery({ photos, legendes }: { photos: string[]; legendes?: Recor
 
   return (
     <>
-      <div className={`grid ${photos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2 mt-3`}>
+      <div className={`grid ${photos.length === 1 ? 'grid-cols-1' : photos.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-2 mt-3`}>
         {photos.map((url, i) => (
-          <div key={i}>
-            <img
-              src={url}
-              alt={legendes?.[String(i)] || ''}
-              className="w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => setLightbox(i)}
-            />
+          <div key={i} className="flex flex-col">
+            <div className={`overflow-hidden rounded-lg ${photos.length === 1 ? 'max-h-64' : 'h-36'}`}>
+              <img
+                src={url}
+                alt={legendes?.[String(i)] || ''}
+                className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => setLightbox(i)}
+              />
+            </div>
             {legendes?.[String(i)] && (
               <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes[String(i)]}</p>
             )}
