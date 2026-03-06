@@ -36,7 +36,21 @@ async function getFichesEleves() {
   }
 }
 
+async function getFichesParrains() {
+  try {
+    const fiches = await sql`
+      SELECT id, titre, texte, photos, photos_legendes, categorie, highlight, ordre, show_date, created_at, lien_bouton_url, lien_bouton_texte, lien_bouton2_url, lien_bouton2_texte
+      FROM pages_content
+      WHERE page = 'parrains' AND published = true
+      ORDER BY ordre ASC, created_at ASC
+    `;
+    return fiches as any[];
+  } catch {
+    return [];
+  }
+}
+
 export default async function EquipePage() {
-  const [fiches, fichesEleves] = await Promise.all([getFiches(), getFichesEleves()]);
-  return <EquipeClient fiches={fiches as any} fichesEleves={fichesEleves as any} />;
+  const [fiches, fichesEleves, fichesParrains] = await Promise.all([getFiches(), getFichesEleves(), getFichesParrains()]);
+  return <EquipeClient fiches={fiches as any} fichesEleves={fichesEleves as any} fichesParrains={fichesParrains as any} />;
 }

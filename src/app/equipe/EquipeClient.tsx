@@ -49,7 +49,7 @@ const sponsors = [
   },
 ];
 
-export function EquipeClient({ fiches, fichesEleves = [] }: { fiches: Fiche[]; fichesEleves?: Fiche[] }) {
+export function EquipeClient({ fiches, fichesEleves = [], fichesParrains = [] }: { fiches: Fiche[]; fichesEleves?: Fiche[]; fichesParrains?: Fiche[] }) {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -274,20 +274,45 @@ export function EquipeClient({ fiches, fichesEleves = [] }: { fiches: Fiche[]; f
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {sponsors.map((sponsor) => (
-              <Card key={sponsor.name} className="text-center border-0 shadow-md hover:shadow-lg transition-shadow">
-                <CardContent className="pt-8 pb-6">
-                  <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-200 to-amber-300 flex items-center justify-center">
-                    <span className="text-3xl font-bold text-[#2D3436]">
-                      {sponsor.name.split(' ').map(n => n[0]).join('')}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900">{sponsor.name}</h3>
-                  <p className="text-[#F9CA24] font-medium text-sm mb-2">{sponsor.role}</p>
-                  <p className="text-gray-600 text-sm">{sponsor.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {(fichesParrains.length > 0 ? fichesParrains : sponsors).map((item: any) => {
+              const isFiche = 'photos' in item;
+              const nom = isFiche ? item.titre : item.name;
+              const role = isFiche ? item.categorie : item.role;
+              const description = isFiche ? item.texte : item.description;
+              const photo = isFiche && item.photos && item.photos.length > 0 ? item.photos[0] : null;
+              const lien = isFiche && item.lien_bouton_url ? item.lien_bouton_url : null;
+              const lienTexte = isFiche && item.lien_bouton_texte ? item.lien_bouton_texte : null;
+              return (
+                <Card key={nom} className="text-center border-0 shadow-md hover:shadow-lg transition-shadow">
+                  <CardContent className="pt-8 pb-6">
+                    {photo ? (
+                      <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden">
+                        <img src={photo} alt={nom} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-200 to-amber-300 flex items-center justify-center">
+                        <span className="text-3xl font-bold text-[#2D3436]">
+                          {nom.split(' ').map((n: string) => n[0]).join('')}
+                        </span>
+                      </div>
+                    )}
+                    <h3 className="text-xl font-bold text-gray-900">{nom}</h3>
+                    {role && <p className="text-[#F9CA24] font-medium text-sm mb-2">{role}</p>}
+                    {description && <p className="text-gray-600 text-sm">{description}</p>}
+                    {lien && lienTexte && (
+                      <div className="mt-4">
+                        <Button asChild size="sm" variant="outline" className="border-[#2D3436] text-[#2D3436]">
+                          <Link href={lien} target={lien.startsWith('http') ? '_blank' : undefined} rel={lien.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                            {lienTexte}
+                            <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                          </Link>
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
