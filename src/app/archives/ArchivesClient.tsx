@@ -43,23 +43,56 @@ function PhotoGallery({ photos, legendes }: { photos: string[]; legendes?: Recor
 
   return (
     <>
-      <div className={`grid ${photos.length === 1 ? 'grid-cols-1' : photos.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-2 mt-3`}>
-        {photos.map((url, i) => (
-          <div key={i} className="flex flex-col">
-            <div className={`overflow-hidden rounded-lg ${photos.length === 1 ? 'max-h-32 max-w-[50%] mx-auto' : 'h-36'}`}>
+      {photos.length === 1 ? (
+        <div className="mt-3 flex flex-col items-center">
+          <div className="overflow-hidden rounded-lg max-h-32 max-w-[50%]">
+            <img
+              src={photos[0]}
+              alt={legendes?.["0"] || ''}
+              className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => setLightbox(0)}
+            />
+          </div>
+          {legendes?.["0"] && (
+            <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes["0"]}</p>
+          )}
+        </div>
+      ) : (
+        <div className="flex gap-2 mt-3">
+          {/* Grande photo à gauche */}
+          <div className="flex flex-col w-1/2 flex-shrink-0">
+            <div className="overflow-hidden rounded-lg h-full min-h-[160px]">
               <img
-                src={url}
-                alt={legendes?.[String(i)] || ''}
+                src={photos[0]}
+                alt={legendes?.["0"] || ''}
                 className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => setLightbox(i)}
+                onClick={() => setLightbox(0)}
               />
             </div>
-            {legendes?.[String(i)] && (
-              <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes[String(i)]}</p>
+            {legendes?.["0"] && (
+              <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes["0"]}</p>
             )}
           </div>
-        ))}
-      </div>
+          {/* Autres photos empilées à droite */}
+          <div className="flex flex-col gap-2 w-1/2">
+            {photos.slice(1).map((url, i) => (
+              <div key={i + 1} className="flex flex-col">
+                <div className="overflow-hidden rounded-lg flex-1" style={{ height: `${160 / (photos.length - 1)}px` }}>
+                  <img
+                    src={url}
+                    alt={legendes?.[String(i + 1)] || ''}
+                    className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => setLightbox(i + 1)}
+                  />
+                </div>
+                {legendes?.[String(i + 1)] && (
+                  <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes[String(i + 1)]}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {lightbox !== null && (
         <div
