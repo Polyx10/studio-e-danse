@@ -54,8 +54,28 @@ async function getTeachers() {
   }
 }
 
+async function getParrains() {
+  try {
+    const fiches = await sql`
+      SELECT id, titre, texte, photos, categorie, lien_bouton_url, lien_bouton_texte
+      FROM pages_content
+      WHERE page = 'parrains' AND published = true
+      ORDER BY ordre ASC, created_at ASC
+    `;
+    return fiches as any[];
+  } catch {
+    return [];
+  }
+}
+
+const sponsorsFallback = [
+  { name: "Thierry Verger" },
+  { name: "Luciano Dinatale" },
+  { name: "Arthur Cadre" },
+];
+
 export default async function Home() {
-  const teachers = await getTeachers();
+  const [teachers, parrains] = await Promise.all([getTeachers(), getParrains()]);
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -234,14 +254,25 @@ export default async function Home() {
             <p className="text-gray-600">Des artistes reconnus qui soutiennent notre école</p>
           </div>
           <div className="flex flex-wrap justify-center items-center gap-12">
-            {["Thierry Verger", "Luciano Dinatale", "Arthur Cadre"].map((name) => (
-              <div key={name} className="text-center">
-                <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-gray-200 flex items-center justify-center text-2xl font-bold text-gray-500">
-                  {name.split(' ').map(n => n[0]).join('')}
+            {(parrains.length > 0 ? parrains : sponsorsFallback).map((item: any) => {
+              const isFiche = 'titre' in item;
+              const nom = isFiche ? item.titre : item.name;
+              const photo = isFiche && item.photos && item.photos.length > 0 ? item.photos[0] : null;
+              return (
+                <div key={nom} className="text-center">
+                  {photo ? (
+                    <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden">
+                      <img src={photo} alt={nom} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-gray-200 flex items-center justify-center text-2xl font-bold text-gray-500">
+                      {nom.split(' ').map((n: string) => n[0]).join('')}
+                    </div>
+                  )}
+                  <p className="font-semibold text-gray-700">{nom}</p>
                 </div>
-                <p className="font-semibold text-gray-700">{name}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
