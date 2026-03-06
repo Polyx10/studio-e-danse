@@ -13,12 +13,15 @@ interface Fiche {
   titre: string;
   texte: string;
   photos: string[];
+  photos_legendes?: Record<string, string> | null;
   categorie: string;
   highlight: boolean;
   show_date: boolean;
   created_at: string;
   lien_bouton_url?: string | null;
   lien_bouton_texte?: string | null;
+  lien_bouton2_url?: string | null;
+  lien_bouton2_texte?: string | null;
 }
 
 const getCategoryColor = (category: string) => {
@@ -32,7 +35,7 @@ const getCategoryColor = (category: string) => {
   }
 };
 
-function PhotoGallery({ photos }: { photos: string[] }) {
+function PhotoGallery({ photos, legendes }: { photos: string[]; legendes?: Record<string, string> | null }) {
   const [lightbox, setLightbox] = useState<number | null>(null);
 
   if (!photos || photos.length === 0) return null;
@@ -41,13 +44,17 @@ function PhotoGallery({ photos }: { photos: string[] }) {
     <>
       <div className={`grid ${photos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2 mt-3`}>
         {photos.map((url, i) => (
-          <img
-            key={i}
-            src={url}
-            alt=""
-            className="w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => setLightbox(i)}
-          />
+          <div key={i}>
+            <img
+              src={url}
+              alt={legendes?.[String(i)] || ''}
+              className="w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => setLightbox(i)}
+            />
+            {legendes?.[String(i)] && (
+              <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes[String(i)]}</p>
+            )}
+          </div>
         ))}
       </div>
 
@@ -162,18 +169,28 @@ export function StagesClient({ fiches }: { fiches: Fiche[] }) {
                         />
                       )}
                       {fiche.photos && fiche.photos.length > 0 && (
-                        <PhotoGallery photos={fiche.photos} />
+                        <PhotoGallery photos={fiche.photos} legendes={fiche.photos_legendes} />
                       )}
-                      {fiche.lien_bouton_url && fiche.lien_bouton_texte && (
-                        <div className="mt-4">
-                          <Button asChild size="sm" className="bg-[#2D3436] hover:bg-[#3d4446] text-white">
-                            <Link href={fiche.lien_bouton_url} target={fiche.lien_bouton_url.startsWith('http') ? '_blank' : undefined} rel={fiche.lien_bouton_url.startsWith('http') ? 'noopener noreferrer' : undefined}>
-                              {fiche.lien_bouton_texte}
-                              <ArrowRight className="ml-2 h-3.5 w-3.5" />
-                            </Link>
-                          </Button>
+                      {(fiche.lien_bouton_url && fiche.lien_bouton_texte) || (fiche.lien_bouton2_url && fiche.lien_bouton2_texte) ? (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {fiche.lien_bouton_url && fiche.lien_bouton_texte && (
+                            <Button asChild size="sm" className="bg-[#2D3436] hover:bg-[#3d4446] text-white">
+                              <Link href={fiche.lien_bouton_url} target={fiche.lien_bouton_url.startsWith('http') ? '_blank' : undefined} rel={fiche.lien_bouton_url.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                                {fiche.lien_bouton_texte}
+                                <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                              </Link>
+                            </Button>
+                          )}
+                          {fiche.lien_bouton2_url && fiche.lien_bouton2_texte && (
+                            <Button asChild size="sm" variant="outline" className="border-[#2D3436] text-[#2D3436] hover:bg-gray-50">
+                              <Link href={fiche.lien_bouton2_url} target={fiche.lien_bouton2_url.startsWith('http') ? '_blank' : undefined} rel={fiche.lien_bouton2_url.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                                {fiche.lien_bouton2_texte}
+                                <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                              </Link>
+                            </Button>
+                          )}
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   </CardContent>
                 </Card>
