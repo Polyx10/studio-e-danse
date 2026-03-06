@@ -1405,9 +1405,6 @@ function InscriptionPageContent() {
                                         
                                         {isComplet && !isHorsNiveau && (
                                           <div className="mt-3 pt-3 border-t border-gray-200">
-                                            <p className="text-sm text-gray-600 mb-2">
-                                              Des places peuvent être disponibles sur place.
-                                            </p>
                                             <Button
                                               type="button"
                                               size="sm"
