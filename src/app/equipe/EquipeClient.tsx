@@ -79,13 +79,18 @@ export function EquipeClient({ fiches, fichesEleves = [] }: { fiches: Fiche[]; f
                 const color = COLORS[index % COLORS.length];
                 const photoLeft = index % 2 === 0;
 
+                const legende0 = fiche.photos_legendes?.["0"] || null;
+
                 const photoBlock = fiche.photos && fiche.photos.length > 0 ? (
                   <div className="absolute inset-0 bg-white flex items-center justify-center">
                     <img
                       src={fiche.photos[0]}
-                      alt={fiche.titre}
+                      alt={legende0 || fiche.titre}
                       className="w-full h-full object-contain"
                     />
+                    {legende0 && (
+                      <p className="absolute bottom-2 left-0 right-0 text-center text-xs text-gray-500 italic bg-white/80 py-1 px-2">{legende0}</p>
+                    )}
                   </div>
                 ) : (
                   <div className={`absolute inset-0 bg-gradient-to-br ${color} flex items-center justify-center`}>
@@ -171,13 +176,18 @@ export function EquipeClient({ fiches, fichesEleves = [] }: { fiches: Fiche[]; f
                 const color = COLORS[index % COLORS.length];
                 const photoLeft = index % 2 === 0;
 
+                const legende0 = fiche.photos_legendes?.["0"] || null;
+
                 const photoBlock = fiche.photos && fiche.photos.length > 0 ? (
-                  <div className="absolute inset-0 bg-white flex items-center justify-center">
+                  <div className="absolute inset-0 bg-white flex flex-col items-center justify-center">
                     <img
                       src={fiche.photos[0]}
-                      alt={fiche.titre}
+                      alt={legende0 || fiche.titre}
                       className="w-full h-full object-contain"
                     />
+                    {legende0 && (
+                      <p className="absolute bottom-2 left-0 right-0 text-center text-xs text-gray-500 italic bg-white/80 py-1 px-2">{legende0}</p>
+                    )}
                   </div>
                 ) : (
                   <div className={`absolute inset-0 bg-gradient-to-br ${color} flex items-center justify-center`}>
