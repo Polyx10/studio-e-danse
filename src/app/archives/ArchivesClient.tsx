@@ -22,6 +22,7 @@ interface Fiche {
   lien_bouton_texte?: string | null;
   lien_bouton2_url?: string | null;
   lien_bouton2_texte?: string | null;
+  photos_disposition?: string | null;
 }
 
 const getCategoryColor = (category: string) => {
@@ -36,63 +37,96 @@ const getCategoryColor = (category: string) => {
   }
 };
 
-function PhotoGallery({ photos, legendes }: { photos: string[]; legendes?: Record<string, string> | null }) {
+function PhotoGallery({ photos, legendes, disposition }: { photos: string[]; legendes?: Record<string, string> | null; disposition?: string | null }) {
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const [carouselIndex, setCarouselIndex] = useState(0);
 
   if (!photos || photos.length === 0) return null;
 
+  const disp = photos.length === 1 ? 'single' : (disposition || 'mosaique');
+
+  const renderGrid = () => (
+    <div className={`grid ${photos.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-2 mt-3`}>
+      {photos.map((url, i) => (
+        <div key={i} className="flex flex-col">
+          <div className="overflow-hidden rounded-lg h-36">
+            <img src={url} alt={legendes?.[String(i)] || ''} className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setLightbox(i)} />
+          </div>
+          {legendes?.[String(i)] && <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes[String(i)]}</p>}
+        </div>
+      ))}
+    </div>
+  );
+
+  const renderMosaique = () => (
+    <div className="flex gap-2 mt-3">
+      <div className="flex flex-col w-1/2 flex-shrink-0">
+        <div className="overflow-hidden rounded-lg min-h-[160px] h-full">
+          <img src={photos[0]} alt={legendes?.["0"] || ''} className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setLightbox(0)} />
+        </div>
+        {legendes?.["0"] && <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes["0"]}</p>}
+      </div>
+      <div className="flex flex-col gap-2 w-1/2">
+        {photos.slice(1).map((url, i) => (
+          <div key={i + 1} className="flex flex-col">
+            <div className="overflow-hidden rounded-lg" style={{ height: `${160 / (photos.length - 1)}px` }}>
+              <img src={url} alt={legendes?.[String(i + 1)] || ''} className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setLightbox(i + 1)} />
+            </div>
+            {legendes?.[String(i + 1)] && <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes[String(i + 1)]}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderCarousel = () => (
+    <div className="mt-3 relative">
+      <div className="overflow-hidden rounded-lg h-52 relative">
+        <img src={photos[carouselIndex]} alt={legendes?.[String(carouselIndex)] || ''} className="w-full h-full object-cover cursor-pointer" onClick={() => setLightbox(carouselIndex)} />
+        {carouselIndex > 0 && (
+          <button className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg hover:bg-black/70" onClick={(e) => { e.stopPropagation(); setCarouselIndex(carouselIndex - 1); }}>‹</button>
+        )}
+        {carouselIndex < photos.length - 1 && (
+          <button className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg hover:bg-black/70" onClick={(e) => { e.stopPropagation(); setCarouselIndex(carouselIndex + 1); }}>›</button>
+        )}
+        <span className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">{carouselIndex + 1}/{photos.length}</span>
+      </div>
+      {legendes?.[String(carouselIndex)] && <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes[String(carouselIndex)]}</p>}
+      <div className="flex justify-center gap-1.5 mt-2">
+        {photos.map((_, i) => (
+          <button key={i} onClick={() => setCarouselIndex(i)} className={`w-2 h-2 rounded-full transition-colors ${i === carouselIndex ? 'bg-gray-700' : 'bg-gray-300'}`} />
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderBande = () => (
+    <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+      {photos.map((url, i) => (
+        <div key={i} className="flex-shrink-0 flex flex-col">
+          <div className="overflow-hidden rounded-lg h-28 w-28">
+            <img src={url} alt={legendes?.[String(i)] || ''} className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setLightbox(i)} />
+          </div>
+          {legendes?.[String(i)] && <p className="text-xs text-gray-500 text-center mt-1 italic w-28 truncate">{legendes[String(i)]}</p>}
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <>
-      {photos.length === 1 ? (
+      {disp === 'single' ? (
         <div className="mt-3 flex flex-col items-center">
           <div className="overflow-hidden rounded-lg max-h-32 max-w-[50%]">
-            <img
-              src={photos[0]}
-              alt={legendes?.["0"] || ''}
-              className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => setLightbox(0)}
-            />
+            <img src={photos[0]} alt={legendes?.["0"] || ''} className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity" onClick={() => setLightbox(0)} />
           </div>
-          {legendes?.["0"] && (
-            <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes["0"]}</p>
-          )}
+          {legendes?.["0"] && <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes["0"]}</p>}
         </div>
-      ) : (
-        <div className="flex gap-2 mt-3">
-          {/* Grande photo à gauche */}
-          <div className="flex flex-col w-1/2 flex-shrink-0">
-            <div className="overflow-hidden rounded-lg h-full min-h-[160px]">
-              <img
-                src={photos[0]}
-                alt={legendes?.["0"] || ''}
-                className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => setLightbox(0)}
-              />
-            </div>
-            {legendes?.["0"] && (
-              <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes["0"]}</p>
-            )}
-          </div>
-          {/* Autres photos empilées à droite */}
-          <div className="flex flex-col gap-2 w-1/2">
-            {photos.slice(1).map((url, i) => (
-              <div key={i + 1} className="flex flex-col">
-                <div className="overflow-hidden rounded-lg flex-1" style={{ height: `${160 / (photos.length - 1)}px` }}>
-                  <img
-                    src={url}
-                    alt={legendes?.[String(i + 1)] || ''}
-                    className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={() => setLightbox(i + 1)}
-                  />
-                </div>
-                {legendes?.[String(i + 1)] && (
-                  <p className="text-xs text-gray-500 text-center mt-1 italic">{legendes[String(i + 1)]}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      ) : disp === 'grille' ? renderGrid()
+        : disp === 'carousel' ? renderCarousel()
+        : disp === 'bande' ? renderBande()
+        : renderMosaique()
+      }
 
       {lightbox !== null && (
         <div
@@ -204,7 +238,7 @@ export function ArchivesClient({ fiches }: { fiches: Fiche[] }) {
                         />
                       )}
                       {fiche.photos && fiche.photos.length > 0 && (
-                        <PhotoGallery photos={fiche.photos} legendes={fiche.photos_legendes} />
+                        <PhotoGallery photos={fiche.photos} legendes={fiche.photos_legendes} disposition={fiche.photos_disposition} />
                       )}
                       {(fiche.lien_bouton_url && fiche.lien_bouton_texte) || (fiche.lien_bouton2_url && fiche.lien_bouton2_texte) ? (
                         <div className="mt-4 flex flex-wrap gap-2">
