@@ -22,7 +22,21 @@ async function getFiches() {
   }
 }
 
+async function getFichesEleves() {
+  try {
+    const fiches = await sql`
+      SELECT id, titre, texte, photos, photos_legendes, categorie, highlight, ordre, show_date, created_at, lien_bouton_url, lien_bouton_texte, lien_bouton2_url, lien_bouton2_texte
+      FROM pages_content
+      WHERE page = 'eleves' AND published = true
+      ORDER BY ordre ASC, created_at ASC
+    `;
+    return fiches as any[];
+  } catch {
+    return [];
+  }
+}
+
 export default async function EquipePage() {
-  const fiches = await getFiches();
-  return <EquipeClient fiches={fiches as any} />;
+  const [fiches, fichesEleves] = await Promise.all([getFiches(), getFichesEleves()]);
+  return <EquipeClient fiches={fiches as any} fichesEleves={fichesEleves as any} />;
 }

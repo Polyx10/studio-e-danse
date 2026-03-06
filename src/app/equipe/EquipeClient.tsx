@@ -49,7 +49,7 @@ const sponsors = [
   },
 ];
 
-export function EquipeClient({ fiches }: { fiches: Fiche[] }) {
+export function EquipeClient({ fiches, fichesEleves = [] }: { fiches: Fiche[]; fichesEleves?: Fiche[] }) {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -157,6 +157,97 @@ export function EquipeClient({ fiches }: { fiches: Fiche[] }) {
           )}
         </div>
       </section>
+
+      {/* Élèves Section */}
+      {fichesEleves.length > 0 && (
+        <section className="py-16 bg-white">
+          <div className="container mx-auto px-4 max-w-5xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900">Quelques élèves...</h2>
+            </div>
+            <div className="space-y-16">
+              {fichesEleves.map((fiche, index) => {
+                const color = COLORS[index % COLORS.length];
+                const photoLeft = index % 2 === 0;
+
+                const photoBlock = fiche.photos && fiche.photos.length > 0 ? (
+                  <div className="absolute inset-0 bg-white flex items-center justify-center">
+                    <img
+                      src={fiche.photos[0]}
+                      alt={fiche.titre}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className={`absolute inset-0 bg-gradient-to-br ${color} flex items-center justify-center`}>
+                    <div className="w-36 h-36 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
+                      <span className="text-6xl font-bold text-white">
+                        {fiche.titre.charAt(0)}
+                      </span>
+                    </div>
+                  </div>
+                );
+
+                const textBlock = (
+                  <div className="p-8">
+                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                      {fiche.titre}
+                    </h2>
+                    {fiche.categorie && (
+                      <Badge className="bg-amber-100 text-[#2D3436] hover:bg-amber-200 text-sm w-fit mb-4">
+                        {fiche.categorie}
+                      </Badge>
+                    )}
+                    {fiche.texte && (
+                      <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify">
+                        {fiche.texte}
+                      </div>
+                    )}
+                    {(fiche.lien_bouton_url && fiche.lien_bouton_texte) || (fiche.lien_bouton2_url && fiche.lien_bouton2_texte) ? (
+                      <div className="mt-5 flex flex-wrap gap-2">
+                        {fiche.lien_bouton_url && fiche.lien_bouton_texte && (
+                          <Button asChild size="sm" className="bg-[#2D3436] hover:bg-[#3d4446] text-white">
+                            <Link href={fiche.lien_bouton_url} target={fiche.lien_bouton_url.startsWith('http') ? '_blank' : undefined} rel={fiche.lien_bouton_url.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                              {fiche.lien_bouton_texte}
+                              <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                            </Link>
+                          </Button>
+                        )}
+                        {fiche.lien_bouton2_url && fiche.lien_bouton2_texte && (
+                          <Button asChild size="sm" variant="outline" className="border-[#2D3436] text-[#2D3436] hover:bg-gray-50">
+                            <Link href={fiche.lien_bouton2_url} target={fiche.lien_bouton2_url.startsWith('http') ? '_blank' : undefined} rel={fiche.lien_bouton2_url.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                              {fiche.lien_bouton2_texte}
+                              <ArrowRight className="ml-2 h-3.5 w-3.5" />
+                            </Link>
+                          </Button>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+
+                return (
+                  <div key={fiche.id}>
+                    <div className="flex flex-col md:flex-row bg-white rounded-xl overflow-hidden shadow-lg">
+                      {photoLeft ? (
+                        <>
+                          <div className="relative overflow-hidden md:w-[55%] min-h-[300px]">{photoBlock}</div>
+                          <div className="md:w-[45%]">{textBlock}</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="md:w-[45%]">{textBlock}</div>
+                          <div className="relative overflow-hidden md:w-[55%] min-h-[300px]">{photoBlock}</div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Sponsors Section */}
       <section className="py-16 bg-white">
