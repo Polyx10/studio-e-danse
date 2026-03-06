@@ -46,7 +46,7 @@ function PhotoGallery({ photos, legendes }: { photos: string[]; legendes?: Recor
       <div className={`grid ${photos.length === 1 ? 'grid-cols-1' : photos.length === 2 ? 'grid-cols-2' : 'grid-cols-3'} gap-2 mt-3`}>
         {photos.map((url, i) => (
           <div key={i} className="flex flex-col">
-            <div className={`overflow-hidden rounded-lg ${photos.length === 1 ? 'max-h-64' : 'h-36'}`}>
+            <div className={`overflow-hidden rounded-lg ${photos.length === 1 ? 'max-h-32 max-w-[50%] mx-auto' : 'h-36'}`}>
               <img
                 src={url}
                 alt={legendes?.[String(i)] || ''}
