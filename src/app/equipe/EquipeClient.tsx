@@ -164,6 +164,7 @@ export function EquipeClient({ fiches, fichesEleves = [] }: { fiches: Fiche[]; f
           <div className="container mx-auto px-4 max-w-5xl">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900">Quelques élèves...</h2>
+              <p className="mt-3 text-gray-500 italic text-lg">Élèves formés par Audrey Ksena, ayant intégré des écoles prestigieuses ou travaillant en compagnies.</p>
             </div>
             <div className="space-y-16">
               {fichesEleves.map((fiche, index) => {
