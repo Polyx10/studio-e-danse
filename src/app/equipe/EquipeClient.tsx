@@ -89,7 +89,7 @@ export function EquipeClient({ fiches, fichesEleves = [] }: { fiches: Fiche[]; f
                       className="w-full h-full object-contain"
                     />
                     {legende0 && (
-                      <p className="absolute bottom-2 left-0 right-0 text-center text-xs text-gray-500 italic bg-white/80 py-1 px-2">{legende0}</p>
+                      <p className="absolute bottom-0 left-0 right-0 text-center text-xs text-gray-500 italic bg-white/50 py-1 px-2">{legende0}</p>
                     )}
                   </div>
                 ) : (
@@ -186,7 +186,7 @@ export function EquipeClient({ fiches, fichesEleves = [] }: { fiches: Fiche[]; f
                       className="w-full h-full object-contain"
                     />
                     {legende0 && (
-                      <p className="absolute bottom-2 left-0 right-0 text-center text-xs text-gray-500 italic bg-white/80 py-1 px-2">{legende0}</p>
+                      <p className="absolute bottom-0 left-0 right-0 text-center text-xs text-gray-500 italic bg-white/50 py-1 px-2">{legende0}</p>
                     )}
                   </div>
                 ) : (
