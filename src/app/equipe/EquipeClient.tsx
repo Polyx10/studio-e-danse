@@ -289,12 +289,12 @@ export function EquipeClient({ fiches, fichesEleves = [], fichesParrains = [] }:
                 <Card key={nom} className="text-center border-0 shadow-md hover:shadow-lg transition-shadow">
                   <CardContent className="pt-8 pb-6">
                     {photo ? (
-                      <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden">
+                      <div className="w-36 h-36 mx-auto mb-4 rounded-full overflow-hidden">
                         <img src={photo} alt={nom} className="w-full h-full object-cover" />
                       </div>
                     ) : (
-                      <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-200 to-amber-300 flex items-center justify-center">
-                        <span className="text-3xl font-bold text-[#2D3436]">
+                      <div className="w-36 h-36 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-200 to-amber-300 flex items-center justify-center">
+                        <span className="text-4xl font-bold text-[#2D3436]">
                           {nom.split(' ').map((n: string) => n[0]).join('')}
                         </span>
                       </div>

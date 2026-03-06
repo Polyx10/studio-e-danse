@@ -261,11 +261,11 @@ export default async function Home() {
               return (
                 <div key={nom} className="text-center">
                   {photo ? (
-                    <div className="w-20 h-20 mx-auto mb-3 rounded-full overflow-hidden">
+                    <div className="w-32 h-32 mx-auto mb-3 rounded-full overflow-hidden">
                       <img src={photo} alt={nom} className="w-full h-full object-cover" />
                     </div>
                   ) : (
-                    <div className="w-20 h-20 mx-auto mb-3 rounded-full bg-gray-200 flex items-center justify-center text-2xl font-bold text-gray-500">
+                    <div className="w-32 h-32 mx-auto mb-3 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-500">
                       {nom.split(' ').map((n: string) => n[0]).join('')}
                     </div>
                   )}
