@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { parseSimpleMarkdown } from "@/lib/markdown";
 
 interface Fiche {
   id: number;
@@ -113,9 +114,10 @@ export function EquipeClient({ fiches, fichesEleves = [], fichesParrains = [] }:
                       </Badge>
                     )}
                     {fiche.texte && (
-                      <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify">
-                        {fiche.texte}
-                      </div>
+                      <div
+                        className="text-gray-700 leading-relaxed whitespace-pre-line text-justify"
+                        dangerouslySetInnerHTML={{ __html: parseSimpleMarkdown(fiche.texte) }}
+                      />
                     )}
                     {(fiche.lien_bouton_url && fiche.lien_bouton_texte) || (fiche.lien_bouton2_url && fiche.lien_bouton2_texte) ? (
                       <div className="mt-5 flex flex-wrap gap-2">
@@ -210,9 +212,10 @@ export function EquipeClient({ fiches, fichesEleves = [], fichesParrains = [] }:
                       </Badge>
                     )}
                     {fiche.texte && (
-                      <div className="text-gray-700 leading-relaxed whitespace-pre-line text-justify">
-                        {fiche.texte}
-                      </div>
+                      <div
+                        className="text-gray-700 leading-relaxed whitespace-pre-line text-justify"
+                        dangerouslySetInnerHTML={{ __html: parseSimpleMarkdown(fiche.texte) }}
+                      />
                     )}
                     {(fiche.lien_bouton_url && fiche.lien_bouton_texte) || (fiche.lien_bouton2_url && fiche.lien_bouton2_texte) ? (
                       <div className="mt-5 flex flex-wrap gap-2">
